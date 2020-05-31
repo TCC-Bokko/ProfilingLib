@@ -1,8 +1,12 @@
 // Profiler.cpp : Define las funciones exportadas de la aplicación DLL.
 //
 #include <iostream>
-#include "stdafx.h"
+//#include "stdafx.h"
+#include "Profiler.h"
 
-void testMSG() {
-	std::cout << "Esto funciona.\n";
+namespace Profiler {
+	void Testing::testMSG() {
+		std::cout << "Esto funciona.\n";
+	}
 }
+

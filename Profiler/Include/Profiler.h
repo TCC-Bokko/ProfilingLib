@@ -1,3 +1,9 @@
 #pragma once
 
-void testMSG();
+namespace Profiler {
+	class Testing {
+		public:
+			// Shows a test message
+			static __declspec(dllexport) void testMSG();
+	};
+}
