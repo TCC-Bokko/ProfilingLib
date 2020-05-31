@@ -174,7 +174,6 @@
   <ItemGroup>
     <ClCompile Include="Source\dllmain.cpp" />
     <ClCompile Include="Source\Profiler.cpp" />
-    <ClCompile Include="Source\stdafx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

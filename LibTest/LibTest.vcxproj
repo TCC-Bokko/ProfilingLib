@@ -85,13 +85,13 @@
     <TargetName>$(ProjectName)$(Plaftorm)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(ProjectDir)Build\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)Profiler\Build\</OutDir>
     <IntDir>$(ProjectDir)intermediate\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)$(Plaftorm)</TargetName>
     <IncludePath>$(ProjectDir)Source;$(ProjectDir)Include;$(ProjectDir);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(ProjectDir)Build\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)Profiler\Build\</OutDir>
     <IntDir>$(ProjectDir)intermediate\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)$(Plaftorm)</TargetName>
     <IncludePath>$(ProjectDir)Source;$(ProjectDir)Include;$(ProjectDir);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
@@ -115,7 +115,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(ProjectDir)Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Profiler\Build\;$(ProjectDir)Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Profiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -146,7 +146,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(ProjectDir)Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Profiler\Build\;$(ProjectDir)Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Profiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

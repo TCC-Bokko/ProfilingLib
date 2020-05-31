@@ -349,8 +349,9 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
-# Ignore dll
+# Ignore dll and libs
 *.dll
+*.lib
 
 # Ignore Intermediate and Build folders
 Profiler/Build/

@@ -3,20 +3,25 @@
 #include "../Profiler/Include/Profiler.h"
 #include <windows.h>
 
+// PARA USAR EL DLL EN CUALQUIER SOFTWARE
 // Include del .lib en Preferencias Proyecto -> Vinculador -> Entrada
 // El .lib debe estar en la carpeta Lib
 // Enlazar el encabezado de la librería (Profiler.h) debe estar en el directorio Include
 // El dll tiene que estar en la carpeta del ejecutable.
 
-// OJO: Cada vez que se haga un cambio en la libreria Profiler y se compile
-// hay que mover el Profiler.dll a la carpeta de ejecutables
-// y el Profiler.lib a la carpeta Lib
+// ESPECIFICO PARA EL TEST
+// Si se hacen cambios en el Profiler, acordarse de compilarlo antes de ejecutar LibTest
+// LibTest genera su ejecutable dentro del Build del Profiler para evitar mover archivos.
+// LibTest enlaza el .lib desde la carpeta Build del Profiler
+
 
 void main() {
 
 	std::cout << "Hello World.\n";
 
 	Profiler::Testing::testMSG();
+
+	Profiler::checkOS::getTime();
 
 	system("PAUSE");
 }

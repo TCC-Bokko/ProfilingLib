@@ -32,8 +32,5 @@
     <ClCompile Include="Source\Profiler.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="Source\stdafx.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>
