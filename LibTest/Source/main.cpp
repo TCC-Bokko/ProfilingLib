@@ -17,11 +17,22 @@
 
 void main() {
 
-	std::cout << "Hello World.\n";
+	std::cout << "Grupo 7: Profiler.\n";
 
+	std::cout << "\n/// TEST MSG ///" << std::endl;
 	Profiler::Testing::testMSG();
 
+	std::cout << "\n/// GET OS TIME ///" << std::endl;
 	Profiler::checkOS::getTime();
+
+	std::cout << "\n/// GET CPU CORES ///" << std::endl;
+	Profiler::checkOS::getCPUCores();
+
+	std::cout << "\n/// GET CPU SPEED ///" << std::endl;
+	Profiler::checkOS::getCPUSpeed();
+
+	std::cout << "\n/// GET CPU INFO ///" << std::endl;
+	Profiler::checkOS::getCPUInfo();
 
 	system("PAUSE");
 }
