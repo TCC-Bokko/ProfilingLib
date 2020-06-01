@@ -19,9 +19,25 @@ void main() {
 
 	std::cout << "Hello World.\n";
 
-	Profiler::Testing::testMSG();
+	int counter = 0;
+	int laps = 20;
+	float media = 0;
+	while (counter < laps) {
 
-	Profiler::checkOS::getTime();
+		//Profiler::Testing::testMSG();
+		
+		//Profiler::checkOS::getTime();
+
+		media += Profiler::checkCPU::GetCPULoad();
+		
+
+		//Sleep(20);
+	
+		counter++;
+	}
+
+	media = media / laps;
+	std::cout << "Media: " << media << "\n";
 
 	system("PAUSE");
 }
