@@ -27,11 +27,23 @@
 // argument and uses it to pad and right justify the number.
 #define WIDTH 7
 
+// OS Version
+typedef LONG NTSTATUS, *PNTSTATUS;
+#define STATUS_SUCCESS (0x00000000)
+typedef NTSTATUS(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+
 
 namespace Profiler {
 	void Testing::testMSG() {
 		std::cout << "Esto funciona.\n";
 	}
+
+
+	/////////////////////////////////////////////
+	//
+	// Operating System Methods
+	//
+	/////////////////////////////////////////////
 
 	void checkOS::getTime() {
 		SYSTEMTIME st, lt;
@@ -40,8 +52,33 @@ namespace Profiler {
 		std::cout << "System Time is: " << st.wHour << ":" << st.wMinute << "\n";
 		std::cout << "Local Time is: " << lt.wHour << ":" << lt.wMinute << "\n";
 	}
+	
+	void checkOS::getOSVersion() {
+		HMODULE hMod = ::GetModuleHandleW(L"ntdll.dll");
+		if (hMod) {
+			RtlGetVersionPtr fxPtr = (RtlGetVersionPtr)::GetProcAddress(hMod, "RtlGetVersion");
+			if (fxPtr != nullptr) {
+				RTL_OSVERSIONINFOW rovi = { 0 };
+				rovi.dwOSVersionInfoSize = sizeof(rovi);
+				if (STATUS_SUCCESS == fxPtr(&rovi)) {
+					//return rovi;
+					std::cout << "Windows Major Version: " << rovi.dwMajorVersion << std::endl;
+					std::cout << "Windows Minor Version: " << rovi.dwMinorVersion << std::endl;
+					std::cout << "Build Number: " << rovi.dwBuildNumber << std::endl;
+					std::cout << "OSVersionInfoSize: " << rovi.dwOSVersionInfoSize << std::endl;
+					std::cout << "PlatformID: " << rovi.dwPlatformId << std::endl;
+				}
+			}
+		}
+	}
 
-	void checkOS::getCPUCores() {
+	/////////////////////////////////////////////
+	//
+	// CPU Methods
+	//
+	/////////////////////////////////////////////
+
+	void checkCPU::getCPUCores() {
 #ifdef WIN32
 		SYSTEM_INFO sysinfo;
 		GetSystemInfo(&sysinfo);
@@ -67,7 +104,7 @@ namespace Profiler {
 #endif
 	}
 
-	void checkOS::getCPU() {
+	void checkCPU::getCPU() {
 		/*
 		int CPUInfo[4] = { -1 };
 		unsigned   nExIds, i = 0;
@@ -103,7 +140,7 @@ namespace Profiler {
 		*/
 	}
 
-	void checkOS::getCPUSpeed() {
+	void checkCPU::getCPUSpeed() {
 			wchar_t Buffer[_MAX_PATH];
 			DWORD BufSize = _MAX_PATH;
 			DWORD dwMHz = _MAX_PATH;
@@ -135,7 +172,13 @@ namespace Profiler {
 			//return (double)dwMHz;
 	}
 
-	void checkOS::getCPUInfo() {
+	/////////////////////////////////////////////
+	//
+	// Memory Methods
+	//
+	/////////////////////////////////////////////
+
+	void checkMemory::getMemInfo() {
 		// Sample output :
 		//  There is       51 percent of memory in use.
 		//  There are 2029968 total KB of physical memory.
@@ -171,5 +214,11 @@ namespace Profiler {
 		_tprintf(TEXT("There are %*I64d free  KB of extended memory.\n"),
 			WIDTH, statex.ullAvailExtendedVirtual / DIV);
 	}
+
+	/////////////////////////////////////////////
+	//
+	// GPU Methods
+	//
+	/////////////////////////////////////////////
 }
 

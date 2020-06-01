@@ -11,10 +11,31 @@ namespace Profiler {
 		private:
 			
 		public:
+			// Hora
 			static __declspec(dllexport) void getTime();
-			static __declspec(dllexport) void getCPU();
-			static __declspec(dllexport) void getCPUCores();
-			static __declspec(dllexport) void getCPUSpeed();
-			static __declspec(dllexport) void getCPUInfo();
+			// Version del SO
+			static __declspec(dllexport) void getOSVersion();
+	};
+
+	class checkCPU {
+	private:
+	public:
+		static __declspec(dllexport) void getCPU();
+		// Cores
+		static __declspec(dllexport) void getCPUCores();
+		// Velocidad
+		static __declspec(dllexport) void getCPUSpeed();
+		
+	};
+
+	class checkMemory {
+	private:
+	public:
+		static __declspec(dllexport) void getMemInfo();
+	};
+
+	class checkGPU {
+	private:
+	public:
 	};
 }

@@ -22,17 +22,24 @@ void main() {
 	std::cout << "\n/// TEST MSG ///" << std::endl;
 	Profiler::Testing::testMSG();
 
+	// OS
+	std::cout << "\n/// GET OS VERSION ///" << std::endl;
+	Profiler::checkOS::getOSVersion();
 	std::cout << "\n/// GET OS TIME ///" << std::endl;
 	Profiler::checkOS::getTime();
 
+	// CPU
 	std::cout << "\n/// GET CPU CORES ///" << std::endl;
-	Profiler::checkOS::getCPUCores();
+	Profiler::checkCPU::getCPUCores();
 
 	std::cout << "\n/// GET CPU SPEED ///" << std::endl;
-	Profiler::checkOS::getCPUSpeed();
+	Profiler::checkCPU::getCPUSpeed();
 
-	std::cout << "\n/// GET CPU INFO ///" << std::endl;
-	Profiler::checkOS::getCPUInfo();
+	// MEMORY
+	std::cout << "\n/// GET Memory INFO ///" << std::endl;
+	Profiler::checkMemory::getMemInfo();
+
+	// GPU
 
 	system("PAUSE");
 }
