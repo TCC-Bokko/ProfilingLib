@@ -29,7 +29,9 @@ void main() {
 	Profiler::checkOS::getTime();
 
 	// CPU
-	std::cout << "\n/// GET CPU CORES ///\n";
+	std::cout << "\n/// GET CPU INFO ///\n";
+	Profiler::checkCPU::getCPU();
+	std::cout << "\n";
 	Profiler::checkCPU::getCPUCores();
 
 	std::cout << "\n/// GET CPU SPEED ///\n";
