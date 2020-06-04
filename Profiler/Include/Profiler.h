@@ -59,4 +59,12 @@ namespace Profiler {
 		static __declspec(dllexport) void countFrames();
 	};
 
+#define DllExport   __declspec( dllexport )
+
+	class DllExport testVariables {
+	private:
+		static int x;
+	public:
+		static void pruebita();
+	};
 }

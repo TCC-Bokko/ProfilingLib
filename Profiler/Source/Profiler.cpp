@@ -559,5 +559,13 @@ namespace Profiler {
 		i++;
 	}
 
+	void testVariables::pruebita()
+	{
+		//x = 3;
+		//x++;
+		//std::cout << "\n/// prueba variables: ///" << x << "\n";
+
+	}
+
 }
 

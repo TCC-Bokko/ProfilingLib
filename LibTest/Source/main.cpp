@@ -70,6 +70,7 @@ void main() {
 
 
 	Profiler::checkGPU::GetFps();
+	Profiler::testVariables::pruebita();
 	
 	system("PAUSE");
 }
