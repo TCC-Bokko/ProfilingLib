@@ -64,6 +64,7 @@ void main() {
 	Profiler::checkMemory::getMemInfo();
 
 	// GPU
+	//Profiler::checkGPU::GetGPUInfo();
 
 	system("PAUSE");
 }

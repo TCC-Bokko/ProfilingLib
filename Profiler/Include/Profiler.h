@@ -1,8 +1,13 @@
 #pragma once
 
-#include "windows.h"
+#include <windows.h>
+#include <time.h>
+#include <stdio.h>
+#include <tchar.h>
+#include <intrin.h>
 
 namespace Profiler {
+
 	class Testing {
 		public:
 			// Shows a test message
@@ -42,6 +47,7 @@ namespace Profiler {
 	class checkGPU {
 	private:
 	public:
+		static __declspec(dllexport) void GetGPUInfo();
 	};
 
 }

@@ -360,3 +360,4 @@ LibTest/Build/
 LibTest/Intermediate/
 [Bb]uild/
 [Ii]ntermediate/
+*.vcxproj
