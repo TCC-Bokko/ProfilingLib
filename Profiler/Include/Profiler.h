@@ -47,7 +47,7 @@ namespace Profiler {
 	class checkGPU {
 	private:
 	public:
-		static __declspec(dllexport) void GetGPUInfo();
+		static __declspec(dllexport) int GetGPUInfo();
 	};
 
 }

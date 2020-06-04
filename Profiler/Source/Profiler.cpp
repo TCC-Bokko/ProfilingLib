@@ -315,7 +315,7 @@ namespace Profiler {
 	// GPU Methods
 	//
 	/////////////////////////////////////////////
-	void checkGPU::GetGPUInfo() {
+	int checkGPU::GetGPUInfo() {
 		HRESULT hres;
 
 		// Step 1: --------------------------------------------------
@@ -326,7 +326,8 @@ namespace Profiler {
 		{
 			cout << "Failed to initialize COM library. Error code = 0x"
 				<< hex << hres << endl;
-			std::cout << "[GetGPUInfo] Failed.\n"; //return 1;                  // Program has failed.
+			std::cout << "[GetGPUInfo] Failed.\n"; 
+			return 1;                  // Program has failed.
 		}
 
 		// Step 2: --------------------------------------------------
@@ -350,7 +351,8 @@ namespace Profiler {
 			cout << "Failed to initialize security. Error code = 0x"
 				<< hex << hres << endl;
 			CoUninitialize();
-			std::cout << "[GetGPUInfo] Failed.\n";  //return 1;                    // Program has failed.
+			std::cout << "[GetGPUInfo] Failed.\n";  
+			return 1;                    // Program has failed.
 		}
 
 		// Step 3: ---------------------------------------------------
@@ -399,7 +401,8 @@ namespace Profiler {
 				<< hex << hres << endl;
 			pLoc->Release();
 			CoUninitialize();
-			std::cout << "[GetGPUInfo] Failed.\n"; //return 1;                // Program has failed.
+			std::cout << "[GetGPUInfo] Failed.\n"; 
+			return 1;                // Program has failed.
 		}
 
 		cout << "Connected to ROOT\\CIMV2 WMI namespace" << endl;
@@ -426,7 +429,8 @@ namespace Profiler {
 			pSvc->Release();
 			pLoc->Release();
 			CoUninitialize();
-			std::cout << "[GetGPUInfo] Failed.\n"; //return 1;               // Program has failed.
+			std::cout << "[GetGPUInfo] Failed.\n";
+			return 1;               // Program has failed.
 		}
 
 		// Step 6: --------------------------------------------------
@@ -464,7 +468,8 @@ namespace Profiler {
 			pSvc->Release();
 			pLoc->Release();
 			CoUninitialize();
-			std::cout << "[GetGPUInfo] Failed.\n"; //return 1;               // Program has failed.
+			std::cout << "[GetGPUInfo] Failed.\n";
+			return 1;               // Program has failed.
 		}
 
 		// Step 7: -------------------------------------------------
@@ -511,7 +516,8 @@ namespace Profiler {
 		pEnumerator->Release();
 		CoUninitialize();
 
-		std::cout << "[GetGPUInfo] Succed.\n"; //return 0;   // Program successfully completed.
+		std::cout << "[GetGPUInfo] Succed.\n"; 
+		return 0;   // Program successfully completed.
 	
 	}
 }
