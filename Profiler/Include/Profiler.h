@@ -6,6 +6,8 @@
 #include <tchar.h>
 #include <intrin.h>
 
+
+
 namespace Profiler {
 
 	class Testing {
@@ -44,11 +46,17 @@ namespace Profiler {
 		static __declspec(dllexport) void getMemInfo();
 		static __declspec(dllexport) void getProcessMemInfo();
 	};
-
-	class checkGPU {
+	
+	
+	extern __declspec(dllexport) int i = 0;  // Okay--export defi
+	class  checkGPU {
 	private:
+		
 	public:
+		//int a;
 		static __declspec(dllexport) int GetGPUInfo();
+		static __declspec(dllexport) void GetFps();
+		static __declspec(dllexport) void countFrames();
 	};
 
 }

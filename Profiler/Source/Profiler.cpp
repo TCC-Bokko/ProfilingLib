@@ -1,5 +1,4 @@
 // Profiler.cpp : Define las funciones exportadas de la aplicación DLL.
-
 // https://www.cprogramming.com/snippets/source-code/find-the-number-of-cpu-cores-for-windows-mac-or-linux
 // This snippet submitted by Dirk-Jan Kroon on 2010-06-09. It has been viewed 23370 times.
 #ifdef _WIN32			
@@ -545,5 +544,20 @@ namespace Profiler {
 		return 0;   // Program successfully completed.
 	
 	}
+
+	//Este metodo se llamara 1 vez cada sec obteniendo la informacin de los frames y 
+	//actualizando su valor.
+	void checkGPU::GetFps()
+	{
+		
+		std::cout << "\n/// FPS: ///" << i << "\n";
+		
+	}
+	//Este metodo se llamara en el render
+	void checkGPU::countFrames()
+	{
+		i++;
+	}
+
 }
 

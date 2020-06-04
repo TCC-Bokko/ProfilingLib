@@ -68,5 +68,8 @@ void main() {
 	std::cout << "\n/// GET GPU INFO ///\n";
 	Profiler::checkGPU::GetGPUInfo();
 
+
+	Profiler::checkGPU::GetFps();
+	
 	system("PAUSE");
 }
