@@ -42,6 +42,7 @@ namespace Profiler {
 	private:
 	public:
 		static __declspec(dllexport) void getMemInfo();
+		static __declspec(dllexport) void getProcessMemInfo();
 	};
 
 	class checkGPU {

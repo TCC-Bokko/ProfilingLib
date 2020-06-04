@@ -62,6 +62,7 @@ void main() {
 	// MEMORY
 	std::cout << "\n/// GET Memory INFO ///\n";
 	Profiler::checkMemory::getMemInfo();
+	Profiler::checkMemory::getProcessMemInfo();
 
 	// GPU
 	std::cout << "\n/// GET GPU INFO ///\n";

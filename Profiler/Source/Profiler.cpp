@@ -26,6 +26,7 @@
 #pragma comment(lib, "wbemuuid.lib")
 
 // OTHER
+#include <Psapi.h>
 using namespace std;
 
 // Use to convert bytes to KB
@@ -106,7 +107,6 @@ namespace Profiler {
 	float checkCPU::CalculateCPULoad(unsigned long idleTicks, unsigned long totalTicks) {
 		static unsigned long long _previousTotalTicks = 0;
 		static unsigned long long _previousIdleTicks = 0;
-
 		unsigned long long totalTicksSinceLastTime = totalTicks - _previousTotalTicks;
 		unsigned long long idleTicksSinceLastTime = idleTicks - _previousIdleTicks;
 
@@ -289,6 +289,9 @@ namespace Profiler {
 			WIDTH, (statex.ullAvailExtendedVirtual) / MB);
 		*/
 
+		//Used Mem
+		DWORDLONG phyMemUsed = statex.ullTotalPhys - statex.ullAvailPhys;
+
 		// GygaBytes
 		_tprintf(TEXT("There is  %*ld percent of memory in use.\n"),
 			WIDTH, statex.dwMemoryLoad);
@@ -296,6 +299,8 @@ namespace Profiler {
 			WIDTH, statex.ullTotalPhys / GB);
 		_tprintf(TEXT("There are %*I64d free GB of physical memory.\n"),
 			WIDTH, statex.ullAvailPhys / GB);
+		_tprintf(TEXT("There are %*I64d used GB of physical memory.\n"),
+			WIDTH, phyMemUsed / GB);
 		_tprintf(TEXT("There are %*I64d total GB of paging file.\n"),
 			WIDTH, statex.ullTotalPageFile / GB);
 		_tprintf(TEXT("There are %*I64d free GB of paging file.\n"),
@@ -308,6 +313,26 @@ namespace Profiler {
 		// Show the amount of extended memory available
 		_tprintf(TEXT("There are %*I64d free GB of extended memory.\n"),
 			WIDTH, (statex.ullAvailExtendedVirtual) / GB);
+	}
+
+	void checkMemory::getProcessMemInfo()
+	{
+		HANDLE hProcess;
+		PROCESS_MEMORY_COUNTERS pmc;
+		
+		BOOL result = GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
+		SIZE_T usedPhy = pmc.WorkingSetSize/ MB;
+		SIZE_T peakusedPhy = pmc.PeakWorkingSetSize / MB;
+
+		if (result) {
+			printf("-- Current Process Info --\n");
+			_tprintf(TEXT("There are %*I64d MB used of physical memory by this process.\n"),
+				WIDTH, usedPhy);
+			_tprintf(TEXT("The Peak was %*I64d MB used of physical memory by this process.\n"),
+				WIDTH, peakusedPhy);
+			//Add more info if wanted
+			printf("--------------------------\n");
+		}
 	}
 
 	/////////////////////////////////////////////
