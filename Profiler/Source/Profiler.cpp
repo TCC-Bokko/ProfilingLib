@@ -1,31 +1,12 @@
 // Profiler.cpp : Define las funciones exportadas de la aplicación DLL.
 // https://www.cprogramming.com/snippets/source-code/find-the-number-of-cpu-cores-for-windows-mac-or-linux
 // This snippet submitted by Dirk-Jan Kroon on 2010-06-09. It has been viewed 23370 times.
-#ifdef _WIN32			
-#include <windows.h>
-#elif MACOS
-#include <sys/param.h>
-#include <sys/sysctl.h>
-#else
-#include <unistd.h>
-#endif
 
 #include "Profiler.h"
-#include <windows.h>
-#include <time.h>
-#include <stdio.h>
-#include <tchar.h>
-#include <intrin.h>
-
-// WMI 
-#define _WIN32_DCOM
-#include <iostream>
-#include <comdef.h>
-#include <Wbemidl.h>
-#pragma comment(lib, "wbemuuid.lib")
 
 // OTHER
 #include <Psapi.h>
+#include <codecvt>
 using namespace std;
 
 // Use to convert bytes to KB
@@ -49,17 +30,66 @@ typedef NTSTATUS(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
 
 namespace Profiler {
 
-	struct hardwareInfo {
-		SYSTEMTIME standardTime;
-		SYSTEMTIME localTime;
-		DWORD OSVersion;
-		int CPUCores;
-		int RAMcapacityMB;
-		int GPUGRAMcapacity;
-	};
-
 	void Testing::testMSG() {
 		std::cout << "Esto funciona.\n";
+	}
+
+
+	/////////////////////////////////////////////
+	//
+	// GameInfo Methods
+	//
+	/////////////////////////////////////////////
+
+	// Devuelve en un unico struct todos los datos importantes
+	GamingData gameInfo::getGameInfo(WMIqueryServer WMI) {
+		// La idea de este metodo es muestrear todos los datos del programa cada X segundos
+		// y devolverlos en un struct. A ser posible cada vez que se llame a este metodo
+		// estaría bien serializar los datos.
+
+		bool debug = true;
+
+		GamingData allInfo;
+
+		// Date, Time
+		GetLocalTime(&allInfo.st);
+
+		// CPU Info
+		allInfo.cpuModel = checkCPU::getCPU();
+		allInfo.cpuLoad = (int)checkCPU::GetCPULoad();
+
+		// GPU Info
+		allInfo.gpuModel = checkGPU::GetGPUModel(WMI);
+
+		// Memory Info
+		//allInfo.ramSize
+		//allInfo.ramLoad
+
+		// Data debug
+		if (debug) {
+			std::cout << "\nDate: " 
+				<< allInfo.st.wDay << "/" 
+				<< allInfo.st.wMonth << "/"
+				<< allInfo.st.wYear << "\n";
+			std::cout << "Time: "
+				<< allInfo.st.wHour << ":"
+				<< allInfo.st.wMinute << ":"
+				<< allInfo.st.wSecond << ":"
+				<< allInfo.st.wMilliseconds
+				<< "\n";
+			std::cout << "CPU: "
+				<< allInfo.cpuModel << "\n";
+			std::cout << "CPU load: "
+				<< allInfo.cpuLoad << " %\n";
+			std::cout << "GPU: "
+				<< allInfo.gpuModel << "\n";
+			std::cout << "GPU load: "
+				<< allInfo.gpuLoad << " %\n";
+		}
+
+		Profiler::serialize::CSVserialize(allInfo);
+
+		return allInfo;
 	}
 
 
@@ -96,6 +126,215 @@ namespace Profiler {
 		}
 	}
 
+	WMIqueryServer checkOS::initializeWMI() {
+		WMIqueryServer WMI;
+
+		// Step 1: --------------------------------------------------
+		// Initialize COM. ------------------------------------------
+		//std::cout << "[GetGPUInfo]Initialize COM.\n";
+		WMI.hres = CoInitializeEx(0, COINIT_MULTITHREADED);
+		if (FAILED(WMI.hres))
+		{
+			cout << "Failed to initialize COM library. Error code = 0x"
+				<< hex << WMI.hres << endl;
+			std::cout << "[GetGPUInfo] Failed.\n";
+
+			WMI.failStatus = 1; //Mark as failed
+			return WMI;                  // Program has failed.
+		}
+
+		// Step 2: --------------------------------------------------
+		// Set general COM security levels --------------------------
+		//std::cout << "[GetGPUInfo]Set COM security levels.\n";
+		WMI.hres = CoInitializeSecurity(
+			NULL,
+			-1,                          // COM authentication
+			NULL,                        // Authentication services
+			NULL,                        // Reserved
+			RPC_C_AUTHN_LEVEL_DEFAULT,   // Default authentication 
+			RPC_C_IMP_LEVEL_IMPERSONATE, // Default Impersonation  
+			NULL,                        // Authentication info
+			EOAC_NONE,                   // Additional capabilities 
+			NULL                         // Reserved
+		);
+
+
+		if (FAILED(WMI.hres))
+		{
+			cout << "Failed to initialize security. Error code = 0x"
+				<< hex << WMI.hres << endl;
+			CoUninitialize();
+			std::cout << "[GetGPUInfo] Failed.\n";
+			WMI.failStatus = 1; //Mark as failed
+			return WMI;
+			//return "Failed to retrieve GPUInfo [Security Init ERROR]";  //return 1;                    // Program has failed.
+		}
+
+		// Step 3: ---------------------------------------------------
+		// Obtain the initial locator to WMI -------------------------
+		//std::cout << "[GetGPUInfo]Obtain the initial locator to WMI.\n";
+		//IWbemLocator *pLoc = NULL;
+		WMI.pLoc = NULL;
+
+
+		WMI.hres = CoCreateInstance(CLSID_WbemLocator, 0, CLSCTX_INPROC_SERVER, IID_IWbemLocator, (LPVOID *)&WMI.pLoc);
+
+		if (FAILED(WMI.hres))
+		{
+			cout << "Failed to create IWbemLocator object."
+				<< " Err code = 0x"
+				<< hex << WMI.hres << endl;
+			CoUninitialize();
+			WMI.failStatus = 1;
+			return WMI;
+			//return "Failed to retrieve GPUInfo [Security Init ERROR]";  //return 1;                 // Program has failed.
+		}
+
+		// Step 4: -----------------------------------------------------
+		// Connect to WMI through the IWbemLocator::ConnectServer method
+		//std::cout << "[GetGPUInfo] Connect to WMI through the IWbemLocator::Connectserver Method.\n";
+		//IWbemServices *pSvc = NULL;
+		WMI.pSvc = NULL;
+
+		// Connect to the root\cimv2 namespace with
+		// the current user and obtain pointer pSvc
+		// to make IWbemServices calls.
+		WMI.hres = WMI.pLoc->ConnectServer(
+			_bstr_t(L"ROOT\\CIMV2"), // Object path of WMI namespace
+			NULL,                    // User name. NULL = current user
+			NULL,                    // User password. NULL = current
+			0,                       // Locale. NULL indicates current
+			NULL,                    // Security flags.
+			0,                       // Authority (for example, Kerberos)
+			0,                       // Context object 
+			&WMI.pSvc                    // pointer to IWbemServices proxy
+		);
+
+		if (FAILED(WMI.hres))
+		{
+			cout << "Could not connect. Error code = 0x"
+				<< hex << WMI.hres << endl;
+			WMI.pLoc->Release();
+			CoUninitialize();
+			std::cout << "[GetGPUInfo] Failed.\n";
+			WMI.failStatus = 1;
+			return WMI;
+			//return 1;                // Program has failed.
+		}
+
+		cout << "Connected to ROOT\\CIMV2 WMI namespace" << endl;
+
+
+		// Step 5: --------------------------------------------------
+		// Set security levels on the proxy -------------------------
+		//std::cout << "[GetGPUInfo]Set security levels on the proxy.\n";
+		WMI.hres = CoSetProxyBlanket(
+			WMI.pSvc,                        // Indicates the proxy to set
+			RPC_C_AUTHN_WINNT,           // RPC_C_AUTHN_xxx
+			RPC_C_AUTHZ_NONE,            // RPC_C_AUTHZ_xxx
+			NULL,                        // Server principal name 
+			RPC_C_AUTHN_LEVEL_CALL,      // RPC_C_AUTHN_LEVEL_xxx 
+			RPC_C_IMP_LEVEL_IMPERSONATE, // RPC_C_IMP_LEVEL_xxx
+			NULL,                        // client identity
+			EOAC_NONE                    // proxy capabilities 
+		);
+
+		if (FAILED(WMI.hres))
+		{
+			cout << "Could not set proxy blanket. Error code = 0x"
+				<< hex << WMI.hres << endl;
+			WMI.pSvc->Release();
+			WMI.pLoc->Release();
+			CoUninitialize();
+			std::cout << "[GetGPUInfo] Failed.\n";
+			WMI.failStatus = 1; // Mark Fail.
+			return WMI;               // Program has failed.
+		}
+
+		WMI.failStatus = 0; // Mark Success
+		return WMI;
+	}
+
+	WMIqueryServer checkOS::queryWMI(WMIqueryServer WMI, string wmiclass, string varname) {
+		
+		// Class string to BSTR
+		BSTR classQuery = bstr_t("SELECT * FROM ");
+		const std::string w32class = wmiclass;
+		_bstr_t classname = w32class.c_str();
+		classQuery = classQuery + classname;
+
+		// Variable string to wstring to LPCWSTR
+		wstring var(varname.begin(), varname.end());
+		LPCWSTR variable = var.c_str();
+		WMI.pEnumerator = NULL;
+
+		// Class Retrieve
+		WMI.hres = WMI.pSvc->ExecQuery(
+			bstr_t("WQL"),
+			bstr_t(classQuery),
+			WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
+			NULL,
+			&WMI.pEnumerator);
+
+		// FailCheck
+		if (FAILED(WMI.hres))
+		{
+			cout << "Query for operating system name failed."
+				<< " Error code = 0x"
+				<< hex << WMI.hres << endl;
+			WMI.pSvc->Release();
+			WMI.pLoc->Release();
+			CoUninitialize();
+			std::cout << "[GetGPUInfo] Failed.\n";
+			WMI.failStatus = 1;
+			return WMI;               // Program has failed.
+		}
+
+		// GET Request variable
+		IWbemClassObject *pclsObj = NULL;
+		ULONG uReturn = 0;
+
+		while (WMI.pEnumerator)
+		{
+			HRESULT hr = WMI.pEnumerator->Next(WBEM_INFINITE, 1,
+				&pclsObj, &uReturn);
+
+			if (0 == uReturn)
+			{
+				break;
+			}
+
+			VARIANT vtProp;
+
+			// Get the value of the Name property
+			//hr = pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
+			hr = pclsObj->Get(variable, 0, &vtProp, 0, 0);
+			
+			//convertir bstr a wstring
+			std::wstring ws(vtProp.bstrVal, SysStringLen(vtProp.bstrVal));
+			//convertir wstring (UTF16) a string (UTF8)
+			std::string resultado = std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(ws);
+			//Guardar string en el resultado del WMI
+			WMI.queryResult = resultado;
+
+			//wcout << "Query Result: " << vtProp.bstrVal << endl;
+			VariantClear(&vtProp);
+
+			pclsObj->Release();
+		}
+
+		WMI.pEnumerator->Release();
+		return WMI;
+	}
+
+	void checkOS::closeWMI(WMIqueryServer WMI) {
+		// Cleanup
+		// ========
+		if (WMI.pSvc != NULL) WMI.pSvc->Release();
+		if (WMI.pLoc != NULL) WMI.pLoc->Release();
+		CoUninitialize();
+	}
+
 	/////////////////////////////////////////////
 	//
 	// CPU Methods
@@ -126,16 +365,17 @@ namespace Profiler {
 	float checkCPU::GetCPULoad() {
 		FILETIME idleTime, kernelTime, userTime;
 		float CPULoad = GetSystemTimes(&idleTime, &kernelTime, &userTime) ? CalculateCPULoad(FileTimeToInt64(idleTime), FileTimeToInt64(kernelTime) + FileTimeToInt64(userTime)) : -1.0f;
-		std::cout << "CPU Load: " << CPULoad << "\n";
+		//std::cout << "CPU Load: " << CPULoad << "\n";
 		return CPULoad;
 	}
 
-	void checkCPU::getCPUCores() {
+	int checkCPU::getCPUCores() {
 #ifdef WIN32
 		SYSTEM_INFO sysinfo;
 		GetSystemInfo(&sysinfo);
 		int numCores = sysinfo.dwNumberOfProcessors;
-		std::cout << "Cores: " << numCores << "\n";
+		//std::cout << "Cores: " << numCores << "\n";
+		return numCores;
 #elif MACOS
 		int nm[2];
 		size_t len = 4;
@@ -149,14 +389,16 @@ namespace Profiler {
 			sysctl(nm, 2, &count, &len, NULL, 0);
 			if (count < 1) { count = 1; }
 		}
-		std::cout << "Cores: " << count << "\n";
+		//std::cout << "Cores: " << count << "\n";
+		return count;
 #else
 		int numCores = sysconf(_SC_NPROCESSORS_ONLN);
-		std::cout << "Cores: " << count << "\n";
+		//std::cout << "Cores: " << count << "\n";
+		return numCores;
 #endif
 	}
 
-	void checkCPU::getCPU() {
+	std::string checkCPU::getCPU() {
 		int CPUInfo[4] = { -1 };
 		__cpuid(CPUInfo, 0x80000000);
 		unsigned int nExIds = CPUInfo[0];
@@ -186,7 +428,8 @@ namespace Profiler {
 			}
 		}
 
-		std::cout << "Cpu Model: " << CPUBrandString;
+		//std::cout << "Cpu Model: " << CPUBrandString;
+		return CPUBrandString;
 	}
 
 	void checkCPU::getCPUSpeed() {
@@ -339,210 +582,14 @@ namespace Profiler {
 	// GPU Methods
 	//
 	/////////////////////////////////////////////
-	int checkGPU::GetGPUInfo() {
-		HRESULT hres;
-
-		// Step 1: --------------------------------------------------
-		// Initialize COM. ------------------------------------------
-		std::cout << "[GetGPUInfo]Initialize COM.\n";
-		hres = CoInitializeEx(0, COINIT_MULTITHREADED);
-		if (FAILED(hres))
-		{
-			cout << "Failed to initialize COM library. Error code = 0x"
-				<< hex << hres << endl;
-			std::cout << "[GetGPUInfo] Failed.\n"; 
-			return 1;                  // Program has failed.
-		}
-
-		// Step 2: --------------------------------------------------
-		// Set general COM security levels --------------------------
-		std::cout << "[GetGPUInfo]Set COM security levels.\n";
-		hres = CoInitializeSecurity(
-			NULL,
-			-1,                          // COM authentication
-			NULL,                        // Authentication services
-			NULL,                        // Reserved
-			RPC_C_AUTHN_LEVEL_DEFAULT,   // Default authentication 
-			RPC_C_IMP_LEVEL_IMPERSONATE, // Default Impersonation  
-			NULL,                        // Authentication info
-			EOAC_NONE,                   // Additional capabilities 
-			NULL                         // Reserved
-		);
-
-
-		if (FAILED(hres))
-		{
-			cout << "Failed to initialize security. Error code = 0x"
-				<< hex << hres << endl;
-			CoUninitialize();
-			std::cout << "[GetGPUInfo] Failed.\n";  
-			return 1;                    // Program has failed.
-		}
-
-		// Step 3: ---------------------------------------------------
-		// Obtain the initial locator to WMI -------------------------
-		std::cout << "[GetGPUInfo]Obtain the initial locator to WMI.\n";
-
-		IWbemLocator *pLoc = NULL;
-
-		hres = CoCreateInstance(
-			CLSID_WbemLocator,
-			0,
-			CLSCTX_INPROC_SERVER,
-			IID_IWbemLocator, (LPVOID *)&pLoc);
-
-		if (FAILED(hres))
-		{
-			cout << "Failed to create IWbemLocator object."
-				<< " Err code = 0x"
-				<< hex << hres << endl;
-			CoUninitialize();
-			std::cout << "[GetGPUInfo] Failed.\n"; //return 1;                 // Program has failed.
-		}
-
-		// Step 4: -----------------------------------------------------
-		// Connect to WMI through the IWbemLocator::ConnectServer method
-		std::cout << "[GetGPUInfo] Connect to WMI through the IWbemLocator::Connectserver Method.\n";
-		IWbemServices *pSvc = NULL;
-
-		// Connect to the root\cimv2 namespace with
-		// the current user and obtain pointer pSvc
-		// to make IWbemServices calls.
-		hres = pLoc->ConnectServer(
-			_bstr_t(L"ROOT\\CIMV2"), // Object path of WMI namespace
-			NULL,                    // User name. NULL = current user
-			NULL,                    // User password. NULL = current
-			0,                       // Locale. NULL indicates current
-			NULL,                    // Security flags.
-			0,                       // Authority (for example, Kerberos)
-			0,                       // Context object 
-			&pSvc                    // pointer to IWbemServices proxy
-		);
-
-		if (FAILED(hres))
-		{
-			cout << "Could not connect. Error code = 0x"
-				<< hex << hres << endl;
-			pLoc->Release();
-			CoUninitialize();
-			std::cout << "[GetGPUInfo] Failed.\n"; 
-			return 1;                // Program has failed.
-		}
-
-		cout << "Connected to ROOT\\CIMV2 WMI namespace" << endl;
-
-
-		// Step 5: --------------------------------------------------
-		// Set security levels on the proxy -------------------------
-		std::cout << "[GetGPUInfo]Set security levels on the proxy.\n";
-		hres = CoSetProxyBlanket(
-			pSvc,                        // Indicates the proxy to set
-			RPC_C_AUTHN_WINNT,           // RPC_C_AUTHN_xxx
-			RPC_C_AUTHZ_NONE,            // RPC_C_AUTHZ_xxx
-			NULL,                        // Server principal name 
-			RPC_C_AUTHN_LEVEL_CALL,      // RPC_C_AUTHN_LEVEL_xxx 
-			RPC_C_IMP_LEVEL_IMPERSONATE, // RPC_C_IMP_LEVEL_xxx
-			NULL,                        // client identity
-			EOAC_NONE                    // proxy capabilities 
-		);
-
-		if (FAILED(hres))
-		{
-			cout << "Could not set proxy blanket. Error code = 0x"
-				<< hex << hres << endl;
-			pSvc->Release();
-			pLoc->Release();
-			CoUninitialize();
-			std::cout << "[GetGPUInfo] Failed.\n";
-			return 1;               // Program has failed.
-		}
-
-		// Step 6: --------------------------------------------------
-		// Use the IWbemServices pointer to make requests of WMI ----
-		std::cout << "[GetGPUInfo]Use the IWbemServices pointer to make request of WMI\n";
-
-		// For example, get the name of the operating system
-
-		IEnumWbemClassObject* pEnumerator = NULL;
+	string checkGPU::GetGPUModel(WMIqueryServer WMI) {
 		
-		// Realizar la petición de información
-		// Sistema operativo:
-		/*
-		hres = pSvc->ExecQuery(
-			bstr_t("WQL"),
-			bstr_t("SELECT * FROM Win32_OperatingSystem"),
-			WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
-			NULL,
-			&pEnumerator);
-		*/
+		WMI = checkOS::queryWMI(WMI, "Win32_VideoController", "Name");
+		
+		//if (WMI.failStatus == 0) std::cout << "GPU Name: " << WMI.queryResult << "\n";
+		//else if (WMI.failStatus == 1) std::cout << "ERROR retrieving GPU Name info.\n";
 
-		// GPU:
-		hres = pSvc->ExecQuery(
-			bstr_t("WQL"),
-			bstr_t("SELECT * FROM Win32_VideoController"),
-			WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
-			NULL,
-			&pEnumerator);
-
-		if (FAILED(hres))
-		{
-			cout << "Query for operating system name failed."
-				<< " Error code = 0x"
-				<< hex << hres << endl;
-			pSvc->Release();
-			pLoc->Release();
-			CoUninitialize();
-			std::cout << "[GetGPUInfo] Failed.\n";
-			return 1;               // Program has failed.
-		}
-
-		// Step 7: -------------------------------------------------
-		// Get the data from the query in step 6 -------------------
-		std::cout << "[GetGPUInfo]Get the data form the query in last step.\n";
-
-		IWbemClassObject *pclsObj = NULL;
-		ULONG uReturn = 0;
-
-		while (pEnumerator)
-		{
-			HRESULT hr = pEnumerator->Next(WBEM_INFINITE, 1,
-				&pclsObj, &uReturn);
-
-			if (0 == uReturn)
-			{
-				break;
-			}
-
-			VARIANT vtProp;
-
-			// Get the value of the Name property
-			// OBTENER EL VALOR DEL NOMBRE DE LA PROPIEDAD
-			// Nombre del Sistema operativo
-			/*
-			hr = pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
-			wcout << " OS Name : " << vtProp.bstrVal << endl;
-			VariantClear(&vtProp);
-			*/
-			
-			// 
-			hr = pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
-			wcout << " GPU Name : " << vtProp.bstrVal << endl;
-			VariantClear(&vtProp);
-
-			pclsObj->Release();
-		}
-
-		// Cleanup
-		// ========
-
-		pSvc->Release();
-		pLoc->Release();
-		pEnumerator->Release();
-		CoUninitialize();
-
-		std::cout << "[GetGPUInfo] Succed.\n"; 
-		return 0;   // Program successfully completed.
-	
+		return WMI.queryResult;
 	}
 
 	//Este metodo se llamara 1 vez cada sec obteniendo la informacin de los frames y 
@@ -553,6 +600,7 @@ namespace Profiler {
 		std::cout << "\n/// FPS: ///" << i << "\n";
 		
 	}
+	
 	//Este metodo se llamara en el render
 	void checkGPU::countFrames()
 	{
@@ -566,6 +614,19 @@ namespace Profiler {
 		//std::cout << "\n/// prueba variables: ///" << x << "\n";
 
 	}
+
+
+	/////////////////////////////////////////////
+	//
+	// Serialize Methods
+	//
+	/////////////////////////////////////////////
+
+	void serialize::CSVserialize(GamingData gi) {
+
+		// IMPLEMENTAR SERIALIZACION
+		std::cout << "CSVSerialize\n";
+	};
 
 }
 
