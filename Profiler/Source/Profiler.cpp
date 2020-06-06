@@ -6,6 +6,7 @@
 
 // OTHER
 #include <Psapi.h>
+#include <fstream>
 #include <codecvt>
 using namespace std;
 
@@ -626,6 +627,14 @@ namespace Profiler {
 
 		// IMPLEMENTAR SERIALIZACION
 		std::cout << "CSVSerialize\n";
+		ofstream file;
+		file.open("example.csv",ofstream::app);
+		file <<gi.st.wDay<<"/"<<gi.st.wMonth<<"/"<<gi.st.wYear<<" -> "<<gi.st.wHour<<":"<<gi.st.wMinute<<":"<<gi.st.wSecond<<":"<<gi.st.wMilliseconds <<"\n";
+
+		file << "GPU MODEL;" << gi.gpuModel + ";;" << "GPU LOAD;" << gi.gpuLoad << "\n";
+		file << "CPU MODEL;" << gi.cpuModel + ";;" << "CPU LOAD;" << gi.cpuLoad << "\n";
+		file << "RAM;"<< gi.ramSize << ";; RAM LOAD;" << gi.ramLoad << "\n\n";
+		file.close();
 	};
 
 }
