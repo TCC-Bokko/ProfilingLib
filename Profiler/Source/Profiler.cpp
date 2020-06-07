@@ -7,6 +7,7 @@
 // OTHER
 #include <Psapi.h>
 #include <codecvt>
+#include <typeinfo>
 using namespace std;
 
 // Use to convert bytes to KB
@@ -34,7 +35,6 @@ namespace Profiler {
 		std::cout << "Esto funciona.\n";
 	}
 
-
 	/////////////////////////////////////////////
 	//
 	// GameInfo Methods
@@ -51,43 +51,59 @@ namespace Profiler {
 
 		GamingData allInfo;
 
+
 		// Date, Time
 		GetLocalTime(&allInfo.st);
 
-		// CPU Info
-		allInfo.cpuModel = checkCPU::getCPU();
-		allInfo.cpuLoad = (int)checkCPU::GetCPULoad();
+		// CPU Info Win32_Processor
+		//WMI = checkOS::queryWMI(WMI, "Win32_Processor", "Manufacturer", "string");
+		//allInfo.cpuBuilder = WMI.stringResult;
+		allInfo.cpuCores = checkCPU::getCPUCores();
+		allInfo.cpuSpeed = checkCPU::getCPUSpeed();
 
-		// GPU Info
-		allInfo.gpuModel = checkGPU::GetGPUModel(WMI);
-
-		// Memory Info
-		//allInfo.ramSize
+		// GPU Info Win32_VideoController
+		WMI = checkOS::queryWMI(WMI, "Win32_VideoController", "Name", "string");
+		allInfo.gpuModel = WMI.stringResult;
+		WMI = checkOS::queryWMI(WMI, "Win32_VideoController", "AdapterRAM", "uint32");
+		float vRamMb = WMI.intResult / MB;
+		allInfo.vRAM = (int)vRamMb;
+		
+		// Memory Info 
+		allInfo.ramSpeed = checkMemory::getRAMSpeed(WMI);
+		allInfo.ramSize = checkMemory::getRAMSizeMB();
 		//allInfo.ramLoad
 
 		// Data debug
 		if (debug) {
-			std::cout << "\nDate: " 
+			// OS
+			std::cout << "Date: " 
 				<< allInfo.st.wDay << "/" 
 				<< allInfo.st.wMonth << "/"
-				<< allInfo.st.wYear << "\n";
+				<< allInfo.st.wYear << ". ";
 			std::cout << "Time: "
 				<< allInfo.st.wHour << ":"
 				<< allInfo.st.wMinute << ":"
 				<< allInfo.st.wSecond << ":"
 				<< allInfo.st.wMilliseconds
 				<< "\n";
-			std::cout << "CPU: "
-				<< allInfo.cpuModel << "\n";
-			std::cout << "CPU load: "
-				<< allInfo.cpuLoad << " %\n";
-			std::cout << "GPU: "
-				<< allInfo.gpuModel << "\n";
-			std::cout << "GPU load: "
-				<< allInfo.gpuLoad << " %\n";
+			// CPU
+			//std::cout << "CPU Model: " << allInfo.cpuModel << "\n";
+			//std::cout << "CPU Builder: " << allInfo.cpuBuilder << "\n";
+			std::cout << "CPU Cores: " << allInfo.cpuCores << " Cores @ ";
+			std::cout << allInfo.cpuSpeed << " Mhz\n";
+			//std::cout << "CPU load: "
+				//<< allInfo.cpuLoad << " %\n";
+			// RAM
+			std::cout << "RAM: " << allInfo.ramSize << " MB @ ";
+			std::cout << allInfo.ramSpeed << " Mhz.\n";
+			// GPU
+			std::cout << "GPU: " << allInfo.gpuModel << "\n";
+			std::cout << "Free VRAM: " << allInfo.vRAM << " MB\n";
+			//std::cout << "GPU load: " << allInfo.gpuLoad << " %\n";
 		}
 
-		Profiler::serialize::CSVserialize(allInfo);
+		// LLAMADA AL SERIALIZADOR
+		// Profiler::serialize::CSVserialize(allInfo);
 
 		return allInfo;
 	}
@@ -255,7 +271,7 @@ namespace Profiler {
 		return WMI;
 	}
 
-	WMIqueryServer checkOS::queryWMI(WMIqueryServer WMI, string wmiclass, string varname) {
+	WMIqueryServer checkOS::queryWMI(WMIqueryServer WMI, string wmiclass, string varname, string vartype) {
 		
 		// Class string to BSTR
 		BSTR classQuery = bstr_t("SELECT * FROM ");
@@ -310,14 +326,36 @@ namespace Profiler {
 			//hr = pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
 			hr = pclsObj->Get(variable, 0, &vtProp, 0, 0);
 			
-			//convertir bstr a wstring
-			std::wstring ws(vtProp.bstrVal, SysStringLen(vtProp.bstrVal));
-			//convertir wstring (UTF16) a string (UTF8)
-			std::string resultado = std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(ws);
-			//Guardar string en el resultado del WMI
-			WMI.queryResult = resultado;
+			// El valor obtenido se guarda en vtProp, que es un tipo variable de datos llamado VARIANT
+			// Los tipos de datos utilizados en las librerias Win32 son 
+			// uint16, uint32, uint64, string, boolean y datetime
+			const char* tipo = typeid(vtProp).name();
+			WMI.bstrResult = vtProp.bstrVal;
+			WMI.intResult = vtProp.intVal;
+			WMI.boolResult = vtProp.boolVal;
+			//std::cout << "WMI results for " << wmiclass << ". Variable: " << varname << "\n";
 
-			//wcout << "Query Result: " << vtProp.bstrVal << endl;
+			if (vartype == "string" || vartype == "datetime") {
+				///////////////////////
+				// Si es un string
+				//////////////////////
+				//convertir bstr a wstring
+				std::wstring ws(vtProp.bstrVal, SysStringLen(vtProp.bstrVal));
+				//convertir wstring (UTF16) a string (UTF8)
+				std::string resultado = std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(ws);
+				//Guardar string en el resultado del WMI
+				WMI.stringResult = resultado;		
+				//std::cout << "WMI stringResult = " << WMI.stringResult << "\n";
+			}
+			else if (vartype == "uint16" || vartype == "uint32" || vartype == "uint64") {
+				WMI.intResult = vtProp.uintVal;
+				//std::cout << "WMI intResult = " << WMI.intResult << "\n";
+			}
+			else if (vartype == "bool") {
+				WMI.boolResult = vtProp.boolVal;
+				//std::cout << "WMI boolResult = " << WMI.boolResult << "\n";
+			}
+
 			VariantClear(&vtProp);
 
 			pclsObj->Release();
@@ -432,7 +470,7 @@ namespace Profiler {
 		return CPUBrandString;
 	}
 
-	void checkCPU::getCPUSpeed() {
+	int checkCPU::getCPUSpeed() {
 			wchar_t Buffer[_MAX_PATH];
 			DWORD BufSize = _MAX_PATH;
 			DWORD dwMHz = _MAX_PATH;
@@ -460,8 +498,8 @@ namespace Profiler {
 			// query the key:
 			RegQueryValueEx(hKey, L"~MHz", NULL, NULL, (LPBYTE)&dwMHz, &BufSize);
 
-			std::cout << "CPU Speed: " << (double)dwMHz << " MHz." << std::endl;
-			//return (double)dwMHz;
+			//std::cout << "CPU Speed: " << (double)dwMHz << " MHz." << std::endl;
+			return (int)dwMHz;
 	}
 
 	/////////////////////////////////////////////
@@ -469,6 +507,25 @@ namespace Profiler {
 	// Memory Methods
 	//
 	/////////////////////////////////////////////
+	void checkMemory::showPhysicalMemoryInfo(WMIqueryServer WMI) {
+		/*
+		WMI = checkOS::queryWMI(WMI, "Win32_PhysicalMemory", "Name", "string");
+		std::cout << "[PhysicalMemory] Name: " << WMI.stringResult << "\n";
+
+		WMI = checkOS::queryWMI(WMI, "Win32_PhysicalMemory", "Model", "string");
+		std::cout << "[PhysicalMemory] Model: " << WMI.stringResult << "\n";
+
+		WMI = checkOS::queryWMI(WMI, "Win32_PhysicalMemory", "Manufacturer", "string");
+		std::cout << "[PhysicalMemory] Manufacturer: " << WMI.stringResult << "\n";
+		*/
+
+		WMI = checkOS::queryWMI(WMI, "Win32_PhysicalMemory", "Capacity", "uint64");
+		float totalRam = WMI.intResult / MB;
+		std::cout << "[PhysicalMemory] Capacity: " << totalRam << "\n";
+
+		WMI = checkOS::queryWMI(WMI, "Win32_PhysicalMemory", "Speed", "uint32");
+		std::cout << "[PhysicalMemory] Speed: " << WMI.intResult << " Mhz\n";
+	}
 
 	void checkMemory::getMemInfo() {
 		// Sample output :
@@ -577,19 +634,65 @@ namespace Profiler {
 		}
 	}
 
+	int checkMemory::getRAMSpeed(WMIqueryServer WMI) {
+		WMI = checkOS::queryWMI(WMI, "Win32_PhysicalMemory", "Speed", "uint32");
+		//std::cout << "[PhysicalMemory] Speed: " << WMI.intResult << " Mhz\n";
+		return WMI.intResult;
+	}
+
+	int checkMemory::getRAMSizeMB() {
+		MEMORYSTATUSEX statex;
+		statex.dwLength = sizeof(statex);
+		GlobalMemoryStatusEx(&statex);
+		DWORDLONG phyMemUsed = statex.ullTotalPhys - statex.ullAvailPhys;
+		int size = statex.ullTotalPhys / MB;
+		return size;
+	}
+
+	int checkMemory::getRAMSizeGB() {
+		MEMORYSTATUSEX statex;
+		statex.dwLength = sizeof(statex);
+		GlobalMemoryStatusEx(&statex);
+		DWORDLONG phyMemUsed = statex.ullTotalPhys - statex.ullAvailPhys;
+		int size = statex.ullTotalPhys / GB;
+		return size;
+	}
+
 	/////////////////////////////////////////////
 	//
 	// GPU Methods
 	//
 	/////////////////////////////////////////////
+	void checkGPU::showVideoControllerInfo(WMIqueryServer WMI) {
+		WMI = checkOS::queryWMI(WMI, "Win32_VideoController", "AdapterCompatibility", "string");
+		std::cout << "[VideoController] Adapter Compability: " << WMI.stringResult << "\n";
+
+		WMI = checkOS::queryWMI(WMI, "Win32_VideoController", "Description", "string");
+		std::cout << "[VideoController] Description: " << WMI.stringResult << "\n";
+
+		WMI = checkOS::queryWMI(WMI, "Win32_VideoController", "DriverVersion", "string");
+		std::cout << "[VideoController] DriverVersion: " << WMI.stringResult << "\n";
+
+		WMI = checkOS::queryWMI(WMI, "Win32_VideoController", "AdapterRAM", "uint32");
+		float vRamMb = WMI.intResult / MB;
+		std::cout << "[VideoController] Adapter RAM: " << vRamMb << "\n";
+
+		WMI = checkOS::queryWMI(WMI, "Win32_VideoController", "Status", "string");
+		std::cout << "[VideoController] Status: " << WMI.stringResult << "\n";
+
+		WMI = checkOS::queryWMI(WMI, "Win32_VideoController", "MaxMemorySupported", "uint32");
+		std::cout << "[VideoController] Max Memory Supported: " << WMI.intResult << "\n";
+	}
+
+
 	string checkGPU::GetGPUModel(WMIqueryServer WMI) {
 		
-		WMI = checkOS::queryWMI(WMI, "Win32_VideoController", "Name");
+		WMI = checkOS::queryWMI(WMI, "Win32_VideoController", "Name", "string");
 		
 		//if (WMI.failStatus == 0) std::cout << "GPU Name: " << WMI.queryResult << "\n";
 		//else if (WMI.failStatus == 1) std::cout << "ERROR retrieving GPU Name info.\n";
 
-		return WMI.queryResult;
+		return WMI.stringResult;
 	}
 
 	//Este metodo se llamara 1 vez cada sec obteniendo la informacin de los frames y 

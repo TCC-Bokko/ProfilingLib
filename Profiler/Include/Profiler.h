@@ -29,20 +29,34 @@ __declspec(dllexport) struct WMIqueryServer {
 	IEnumWbemClassObject* pEnumerator;
 	bool initialized = false;
 	int failStatus; //  1 = error, 0 = success
-	std::string queryResult;
+	//Query Result needs conversion to printable.
+	std::string stringResult;
+	unsigned long long intResult;
+	bool boolResult;
+	BSTR bstrResult;
 };
 
 __declspec(dllexport) struct GamingData {
 	// Struct para devolver con un único metodo
 	// Recopilando la información que solo es importante de cara
 	// a un juego.
+	// OS
 	SYSTEMTIME st;
-	std::string gpuModel;
+	std::string motherboardModel;
+	// CPU
 	std::string cpuModel;
+	std::string cpuBuilder;
+	int cpuCores;
+	int cpuSpeed;
 	int cpuLoad; // 0-100
+	// GPU
+	std::string gpuModel;
 	int gpuLoad; // 0-100
+	int vRAM;
+	// Memory
 	int ramLoad; // 0-100
-	int ramSize;
+	int ramSize; // 0-100
+	int ramSpeed; // Mhz
 };
 
 namespace Profiler {
@@ -71,29 +85,30 @@ namespace Profiler {
 			static __declspec(dllexport) void getOSVersion();
 			// Initialize WMI Query
 			static __declspec(dllexport) WMIqueryServer initializeWMI();
-			static __declspec(dllexport) WMIqueryServer queryWMI(WMIqueryServer WMI, std::string wmiclass, std::string varname);
+			static __declspec(dllexport) WMIqueryServer queryWMI(WMIqueryServer WMI, std::string wmiclass, std::string varname, std::string vartype);
 			static __declspec(dllexport) void closeWMI(WMIqueryServer WMI);
 	};
 
 	class checkCPU {
 		private:
-			static __declspec(dllexport) float CalculateCPULoad(unsigned long idleTicks, unsigned long totalTicks);
-			static __declspec(dllexport) unsigned long FileTimeToInt64(const FILETIME& ft);
 		public:
 			static __declspec(dllexport) float GetCPULoad();
-			//
 			static __declspec(dllexport) std::string getCPU();
-			// Cores
 			static __declspec(dllexport) int getCPUCores();
-			// Velocidad
-			static __declspec(dllexport) void getCPUSpeed();
+			static __declspec(dllexport) int getCPUSpeed();
+			static __declspec(dllexport) float CalculateCPULoad(unsigned long idleTicks, unsigned long totalTicks);
+			static __declspec(dllexport) unsigned long FileTimeToInt64(const FILETIME& ft);
 	};
 
 	class checkMemory {
 	private:
 	public:
+		static __declspec(dllexport) void showPhysicalMemoryInfo(WMIqueryServer WMI);
 		static __declspec(dllexport) void getMemInfo();
 		static __declspec(dllexport) void getProcessMemInfo();
+		static __declspec(dllexport) int getRAMSpeed(WMIqueryServer WMI);
+		static __declspec(dllexport) int getRAMSizeMB();
+		static __declspec(dllexport) int getRAMSizeGB();
 	};
 	
 	
@@ -103,6 +118,7 @@ namespace Profiler {
 		
 	public:
 		//int a;
+		static __declspec(dllexport) void showVideoControllerInfo(WMIqueryServer WMI);
 		static __declspec(dllexport) std::string GetGPUModel(WMIqueryServer WMI);
 		static __declspec(dllexport) void GetFps();
 		static __declspec(dllexport) void countFrames();

@@ -23,7 +23,9 @@ void main() {
 	WMIqueryServer WMI;
 	WMI = Profiler::checkOS::initializeWMI();
 	if (WMI.failStatus == 1) std::cout << "ERROR: WMI initialize FAILED\n";
-	else if (WMI.failStatus == 0) std::cout << "WMI initialized with success.";
+	else if (WMI.failStatus == 0) std::cout << "WMI initialized with success.\n";
+
+	/*
 
 	std::cout << "\n/// TEST MSG ///\n";
 	Profiler::Testing::testMSG();
@@ -68,18 +70,22 @@ void main() {
 
 	// MEMORY
 	std::cout << "\n/// GET Memory INFO ///\n";
+	Profiler::checkMemory::showPhysicalMemoryInfo(WMI);
+	std::cout << "\n";
 	Profiler::checkMemory::getMemInfo();
 	Profiler::checkMemory::getProcessMemInfo();
 	
 
 	// GPU
 	std::cout << "\n/// GET GPU INFO ///\n";
-	Profiler::checkGPU::GetGPUModel(WMI);
-	if (WMI.failStatus == 0) std::cout << "GPU Model: " << WMI.queryResult << "\n";
-	else std::cout << "Failed to get GPU Model.\n";
+	Profiler::checkGPU::showVideoControllerInfo(WMI);
+	//Profiler::checkGPU::GetGPUModel(WMI);
+	//if (WMI.failStatus == 0) std::cout << "GPU Model: " << WMI.queryResult << "\n";
+	//else std::cout << "Failed to get GPU Model.\n";
 	//Profiler::checkGPU::GetFps();
 	//Profiler::testVariables::pruebita();
 
+	*/
 
 	// Game Info
 	std::cout << "\n/// GET GAME INFO ///\n";
