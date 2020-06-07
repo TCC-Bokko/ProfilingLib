@@ -589,7 +589,7 @@ namespace Profiler {
 		IEnumWbemClassObject* pEnumerator = NULL;
 		IWbemClassObject* pclsObj;
 		int i;
-		while (1) {
+		
 			i = 1;
 			hres = pSvc->ExecQuery(bstr_t("WQL"),
 				bstr_t("SELECT * FROM Win32_PerfFormattedData_PerfOS_Processor"),
@@ -631,7 +631,7 @@ namespace Profiler {
 
 				i++;
 			}
-		}
+		
 	}
 
 

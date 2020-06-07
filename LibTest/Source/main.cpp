@@ -94,8 +94,8 @@ void main() {
 	std::cout << "\n/// GET GAME INFO ///\n";
 	Profiler::gameInfo::getGameInfo(WMI);
 
-
-	Profiler::checkCPU::getCPUcoresLoad();
+	while(1)
+		Profiler::checkCPU::getCPUcoresLoad();
 
 
 	system("PAUSE");
