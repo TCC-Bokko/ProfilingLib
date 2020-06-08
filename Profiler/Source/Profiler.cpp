@@ -20,7 +20,7 @@
 #include <cstdio>
 using namespace std;
 
-// GPU
+// GPU (Obtained from NvAPI, Nvidia software)
 // magic numbers, do not change them
 #define NVAPI_MAX_PHYSICAL_GPUS   64
 #define NVAPI_MAX_USAGES_PER_GPU  34
@@ -877,7 +877,7 @@ namespace Profiler {
 	}
 
 	int checkGPU::getGPULoad() {
-		HMODULE hmod = LoadLibraryA("nvapi64.dll");
+		HMODULE hmod = LoadLibraryA(NVAPI_DLL);
 		
 		if (hmod == NULL)
 		{
@@ -936,7 +936,7 @@ namespace Profiler {
 	};
 
 	int checkGPU::getGPUTemp() {
-		HMODULE hmod = LoadLibraryA("nvapi64.dll");
+		HMODULE hmod = LoadLibraryA(NVAPI_DLL);
 
 		if (hmod == NULL)
 		{
