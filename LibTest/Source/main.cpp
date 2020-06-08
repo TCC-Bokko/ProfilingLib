@@ -90,6 +90,8 @@ void main() {
 	//Profiler::testVariables::pruebita();
 
 	*/
+	std::cout << "\n/// GET GPU INFO ///\n";
+	Profiler::checkGPU::getGPULoad();
 
 	// Game Info
 	std::cout << "\n/// GET GAME INFO ///\n";

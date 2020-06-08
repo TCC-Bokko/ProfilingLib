@@ -86,6 +86,7 @@ namespace Profiler {
 		WMI = checkOS::queryWMI(WMI, "Win32_VideoController", "AdapterRAM", "uint32");
 		float vRamMb = WMI.intResult / MB;
 		allInfo.vRAM = (int)vRamMb;
+		allInfo.gpuLoad = checkGPU::getGPULoad();
 		
 		// Memory Info 
 		allInfo.ramSpeed = checkMemory::getRAMSpeed(WMI);
@@ -122,6 +123,7 @@ namespace Profiler {
 			// GPU
 			std::cout << "GPU: " << allInfo.gpuModel << "\n";
 			std::cout << "Free VRAM: " << allInfo.vRAM << " MB\n";
+			std::cout << "GPU Load: " << allInfo.gpuLoad << " %\n";
 			//std::cout << "GPU load: " << allInfo.gpuLoad << " %\n";
 		}
 
@@ -810,11 +812,12 @@ namespace Profiler {
 	}
 
 	int checkGPU::getGPULoad() {
-		HMODULE hmod = LoadLibraryA("nvapi.dll");
+		HMODULE hmod = LoadLibraryA("nvapi64.dll");
+		
 		if (hmod == NULL)
 		{
 			std::cerr << "Couldn't find nvapi.dll" << std::endl;
-			return 1;
+			return -1;
 		}
 
 		// nvapi.dll internal function pointers
@@ -835,7 +838,7 @@ namespace Profiler {
 			NvAPI_EnumPhysicalGPUs == NULL || NvAPI_GPU_GetUsages == NULL)
 		{
 			std::cerr << "Couldn't get functions in nvapi.dll" << std::endl;
-			return 2;
+			return -2;
 		}
 
 		// initialize NvAPI library, call it once before calling any other NvAPI functions
@@ -851,6 +854,7 @@ namespace Profiler {
 		(*NvAPI_EnumPhysicalGPUs)(gpuHandles, &gpuCount);
 
 		// print GPU usage every second
+		/*
 		for (int i = 0; i < 100; i++)
 		{
 			(*NvAPI_GPU_GetUsages)(gpuHandles[0], gpuUsages);
@@ -858,8 +862,11 @@ namespace Profiler {
 			std::cout << "GPU Usage: " << usage <<  "%" << std::endl;
 			Sleep(1000);
 		}
+		*/
+		(*NvAPI_GPU_GetUsages)(gpuHandles[0], gpuUsages);
+		int usage = gpuUsages[3];
 
-		return 0;
+		return usage;
 	};
 
 	/////////////////////////////////////////////
