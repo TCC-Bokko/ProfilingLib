@@ -113,6 +113,7 @@ namespace Profiler {
 		static __declspec(dllexport) int getRAMSpeed(WMIqueryServer WMI);
 		static __declspec(dllexport) int getRAMSizeMB();
 		static __declspec(dllexport) int getRAMSizeGB();
+		static __declspec(dllexport) int getRAMLoad();
 	};
 	
 	

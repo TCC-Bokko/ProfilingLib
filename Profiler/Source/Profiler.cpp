@@ -91,7 +91,7 @@ namespace Profiler {
 		// Memory Info 
 		allInfo.ramSpeed = checkMemory::getRAMSpeed(WMI);
 		allInfo.ramSize = checkMemory::getRAMSizeMB();
-		//allInfo.ramLoad
+		allInfo.ramLoad = checkMemory::getRAMLoad();
 
 		// Data debug
 		if (debug) {
@@ -120,6 +120,7 @@ namespace Profiler {
 			// RAM
 			std::cout << "RAM: " << allInfo.ramSize << " MB @ ";
 			std::cout << allInfo.ramSpeed << " Mhz.\n";
+			std::cout << "RAM Load: " << allInfo.ramLoad << " %\n";
 			// GPU
 			std::cout << "GPU: " << allInfo.gpuModel << "\n";
 			std::cout << "Free VRAM: " << allInfo.vRAM << " MB\n";
@@ -686,7 +687,7 @@ namespace Profiler {
 		DWORDLONG phyMemUsed = statex.ullTotalPhys - statex.ullAvailPhys;
 
 		// GygaBytes
-		_tprintf(TEXT("There is  %*ld percent of memory in use.\n"),
+		_tprintf(TEXT("There is  %*ld  % of memory in use.\n"),
 			WIDTH, statex.dwMemoryLoad);
 		_tprintf(TEXT("There are %*I64d total GB of physical memory.\n"),
 			WIDTH, statex.ullTotalPhys / GB);
@@ -750,6 +751,19 @@ namespace Profiler {
 		DWORDLONG phyMemUsed = statex.ullTotalPhys - statex.ullAvailPhys;
 		int size = statex.ullTotalPhys / GB;
 		return size;
+	}
+
+	int checkMemory::getRAMLoad() {
+		int load = 0;
+
+		MEMORYSTATUSEX statex;
+		statex.dwLength = sizeof(statex);
+		GlobalMemoryStatusEx(&statex);
+
+		load = statex.dwMemoryLoad;
+		//std::cout << "Load: " << load << " %\n";
+
+		return load;
 	}
 
 	/////////////////////////////////////////////

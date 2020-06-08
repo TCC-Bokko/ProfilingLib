@@ -78,6 +78,7 @@ void main() {
 	std::cout << "\n";
 	Profiler::checkMemory::getMemInfo();
 	Profiler::checkMemory::getProcessMemInfo();
+	Profiler::checkMemory::getRAMLoad();
 	
 
 	// GPU
@@ -88,10 +89,8 @@ void main() {
 	//else std::cout << "Failed to get GPU Model.\n";
 	//Profiler::checkGPU::GetFps();
 	//Profiler::testVariables::pruebita();
-
+	//Profiler::checkGPU::getGPULoad();
 	*/
-	std::cout << "\n/// GET GPU INFO ///\n";
-	Profiler::checkGPU::getGPULoad();
 
 	// Game Info
 	std::cout << "\n/// GET GAME INFO ///\n";
