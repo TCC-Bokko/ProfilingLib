@@ -54,6 +54,7 @@ __declspec(dllexport) struct GamingData {
 	// GPU
 	std::string gpuModel;
 	int gpuLoad; // 0-100
+	int gpuTemp;
 	int vRAM;
 	// Memory
 	int ramLoad; // 0-100
@@ -128,6 +129,7 @@ namespace Profiler {
 		static __declspec(dllexport) void GetFps();
 		static __declspec(dllexport) void countFrames();
 		static __declspec(dllexport) int getGPULoad();
+		static __declspec(dllexport) int getGPUTemp();
 	};
 
 
