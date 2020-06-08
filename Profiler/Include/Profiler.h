@@ -126,6 +126,7 @@ namespace Profiler {
 		static __declspec(dllexport) std::string GetGPUModel(WMIqueryServer WMI);
 		static __declspec(dllexport) void GetFps();
 		static __declspec(dllexport) void countFrames();
+		static __declspec(dllexport) int getGPULoad();
 	};
 
 
