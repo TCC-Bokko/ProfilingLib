@@ -29,8 +29,8 @@ void main() {
 	std::cout << "\n/// GET GAME INFO ///\n";
 	Profiler::gameInfo::getGameInfo(WMI);
 
+	//Profiler::serialize::CSVserialize(Profiler::gameInfo::getGameInfo(WMI));
 	system("PAUSE");
-
 
 	// CLOSE WMI SERVICE
 	Profiler::checkOS::closeWMI(WMI);
