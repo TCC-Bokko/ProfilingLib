@@ -14,6 +14,7 @@
 #include <tchar.h>
 #include <intrin.h>
 #include <string>
+#include <vector>
 
 // WMI 
 #define _WIN32_DCOM
@@ -49,6 +50,7 @@ __declspec(dllexport) struct GamingData {
 	int cpuCores;
 	int cpuSpeed;
 	int cpuLoad; // 0-100
+	std::vector<int> cpuCoresLoad;
 	// GPU
 	std::string gpuModel;
 	int gpuLoad; // 0-100
@@ -57,6 +59,7 @@ __declspec(dllexport) struct GamingData {
 	int ramLoad; // 0-100
 	int ramSize; // 0-100
 	int ramSpeed; // Mhz
+	
 };
 
 namespace Profiler {
@@ -98,9 +101,7 @@ namespace Profiler {
 			static __declspec(dllexport) int getCPUSpeed();
 			static __declspec(dllexport) float CalculateCPULoad(unsigned long idleTicks, unsigned long totalTicks);
 			static __declspec(dllexport) unsigned long FileTimeToInt64(const FILETIME& ft);
-			static __declspec(dllexport) void getCPUcoresLoad();
-			
-			
+			static __declspec(dllexport) std::vector<int> getCPUcoresLoad(WMIqueryServer WMI);
 	};
 
 	class checkMemory {

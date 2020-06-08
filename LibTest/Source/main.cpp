@@ -25,7 +25,8 @@ void main() {
 	if (WMI.failStatus == 1) std::cout << "ERROR: WMI initialize FAILED\n";
 	else if (WMI.failStatus == 0) std::cout << "WMI initialized with success.\n";
 
-
+	// CARGA DE LAS CPUs
+	//Profiler::checkCPU::getCPUcoresLoad(WMI);
 
 	
 	/*
@@ -93,10 +94,6 @@ void main() {
 	// Game Info
 	std::cout << "\n/// GET GAME INFO ///\n";
 	Profiler::gameInfo::getGameInfo(WMI);
-
-	while(1)
-		Profiler::checkCPU::getCPUcoresLoad();
-
 
 	system("PAUSE");
 

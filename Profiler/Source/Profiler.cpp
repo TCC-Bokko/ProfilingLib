@@ -9,9 +9,8 @@
 #include <fstream>
 #include <codecvt>
 #include <typeinfo>
+#include <cstdio>
 using namespace std;
-
-
 
 
 // Use to convert bytes to KB
@@ -63,6 +62,7 @@ namespace Profiler {
 		//WMI = checkOS::queryWMI(WMI, "Win32_Processor", "Manufacturer", "string");
 		//allInfo.cpuBuilder = WMI.stringResult;
 		allInfo.cpuCores = checkCPU::getCPUCores();
+		allInfo.cpuCoresLoad = checkCPU::getCPUcoresLoad(WMI);
 		allInfo.cpuSpeed = checkCPU::getCPUSpeed();
 
 		// GPU Info Win32_VideoController
@@ -95,6 +95,10 @@ namespace Profiler {
 			//std::cout << "CPU Builder: " << allInfo.cpuBuilder << "\n";
 			std::cout << "CPU Cores: " << allInfo.cpuCores << " Cores @ ";
 			std::cout << allInfo.cpuSpeed << " Mhz\n";
+			std::cout << "Cores Load:\n";
+			for (int i = 0; i < allInfo.cpuCoresLoad.size(); i++) {
+				std::cout << "Core " << i << ": " << allInfo.cpuCoresLoad.at(i) << " %\n";
+			}
 			//std::cout << "CPU load: "
 				//<< allInfo.cpuLoad << " %\n";
 			// RAM
@@ -508,130 +512,73 @@ namespace Profiler {
 			return (int)dwMHz;
 	}
 
-
-
-	void checkCPU::getCPUcoresLoad()
+	std::vector<int> checkCPU::getCPUcoresLoad(WMIqueryServer WMI)
 	{
-		HRESULT hres;
-
-		// Step 1: --------------------------------------------------
-		// Initialize COM. ------------------------------------------
-
-		hres = CoInitializeEx(0, COINIT_MULTITHREADED);
-		if (FAILED(hres)) {
-			cout << "Failed to initialize COM library. Error code = 0x" << hex << hres << endl;
-			// Program has failed.
-
-		}
-		
-		
-		IWbemLocator* pLoc = NULL;
-
-		hres = CoCreateInstance(
-			CLSID_WbemLocator,
-			0,
-			CLSCTX_INPROC_SERVER,
-			IID_IWbemLocator, (LPVOID*)&pLoc);
-
-		if (FAILED(hres)) {
-			cout << "Failed to create IWbemLocator object."
-				<< " Err code = 0x"
-				<< hex << hres << endl;
-			CoUninitialize();
-			// Program has failed.
-		}
-
-
-		IWbemServices* pSvc = NULL;
-
-		// Connect to the root\cimv2 namespace with
-		// the current user and obtain pointer pSvc
-		// to make IWbemServices calls.
-		hres = pLoc->ConnectServer(
-			_bstr_t(L"ROOT\\CIMV2"), // Object path of WMI namespace
-			NULL,                    // User name. NULL = current user
-			NULL,                    // User password. NULL = current
-			0,                       // Locale. NULL indicates current
-			NULL,                    // Security flags.
-			0,                       // Authority (e.g. Kerberos)
-			0,                       // Context object
-			&pSvc                    // pointer to IWbemServices proxy
-		);
-
-		if (FAILED(hres)) {
-			cout << "Could not connect. Error code = 0x" << hex << hres << endl;
-			pLoc->Release();
-			CoUninitialize();
-			// Program has failed.
-		}
-
-		cout << "Connected to ROOT\\CIMV2 WMI namespace" << endl;
-		hres = CoSetProxyBlanket(
-			pSvc,                        // Indicates the proxy to set
-			RPC_C_AUTHN_WINNT,           // RPC_C_AUTHN_xxx
-			RPC_C_AUTHZ_NONE,            // RPC_C_AUTHZ_xxx
-			NULL,                        // Server principal name
-			RPC_C_AUTHN_LEVEL_CALL,      // RPC_C_AUTHN_LEVEL_xxx
-			RPC_C_IMP_LEVEL_IMPERSONATE, // RPC_C_IMP_LEVEL_xxx
-			NULL,                        // client identity
-			EOAC_NONE                    // proxy capabilities
-		);
-
-		if (FAILED(hres)) {
-			cout << "Could not set proxy blanket. Error code = 0x"
-				<< hex << hres << endl;
-			pSvc->Release();
-			pLoc->Release();
-			CoUninitialize();
-			// Program has failed.
-		}
-
-		IEnumWbemClassObject* pEnumerator = NULL;
 		IWbemClassObject* pclsObj;
-		int i;
+		std::vector<int> loads;
+		int i = 1;
 		
-			i = 1;
-			hres = pSvc->ExecQuery(bstr_t("WQL"),
-				bstr_t("SELECT * FROM Win32_PerfFormattedData_PerfOS_Processor"),
-				WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
-				NULL,
-				&pEnumerator);
+		WMI.hres = WMI.pSvc->ExecQuery(bstr_t("WQL"),
+			bstr_t("SELECT * FROM Win32_PerfFormattedData_PerfOS_Processor"),
+			WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
+			NULL,
+			&WMI.pEnumerator);
 
 
-			if (FAILED(hres)) {
-				cout << "Query for operating system name failed."
-					<< " Error code = 0x"
-					<< hex << hres << endl;
-				pSvc->Release();
-				pLoc->Release();
-				CoUninitialize();
-				// Program has failed.
+		if (FAILED(WMI.hres)) {
+			cout << "Query for operating system name failed."
+				<< " Error code = 0x"
+				<< hex << WMI.hres << endl;
+			WMI.pSvc->Release();
+			WMI.pLoc->Release();
+			CoUninitialize();
+			// Program has failed.
+		}
+
+		ULONG uReturn = 0;
+
+		while (WMI.pEnumerator) {
+			HRESULT hr = WMI.pEnumerator->Next(WBEM_INFINITE, 1,
+				&pclsObj, &uReturn);
+
+			if (0 == uReturn) {
+				break;
 			}
 
-			ULONG uReturn = 0;
+			VARIANT vtProp;
 
-			while (pEnumerator) {
-				HRESULT hr = pEnumerator->Next(WBEM_INFINITE, 1,
-					&pclsObj, &uReturn);
+			// Get the value of the Name property
+			//hr = pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
+			hr = pclsObj->Get(L"PercentProcessorTime", 0, &vtProp, 0, 0);
+			//wcout << "CPU " << i << " : " << vtProp.bstrVal << " %" << endl;
 
-				if (0 == uReturn) {
-					break;
-				}
-
-				VARIANT vtProp;
-
-				// Get the value of the Name property
-				//hr = pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
-				hr = pclsObj->Get(L"PercentProcessorTime", 0, &vtProp, 0, 0);
-				wcout << " CPU Usage of CPU " << i << " : " << vtProp.bstrVal << endl;
-				VariantClear(&vtProp);
-
-				//IMPORTANT!!
-				pclsObj->Release();
-
-				i++;
+			//Transformar bstr a string y de string a int para guardarlo en el vector
+			//convertir bstr a wstring
+			std::wstring ws(vtProp.bstrVal, SysStringLen(vtProp.bstrVal));
+			//convertir wstring (UTF16) a string (UTF8)
+			std::string resultado = std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(ws);
+			//std::cout << "String convertido: " << resultado << "\n";
+			// convertir string a int
+			int res = std::stoi(resultado);
+			//Guardar en vector
+			loads.emplace_back(res);
+			/*
+			std::cout << "int convertido: " << res << "\n";
+			std::cout << "Loads: {";
+			for (int j = 0; j < loads.size(); j++) {
+				std::cout << loads.at(j) << ",";
 			}
-		
+			std::cout << "}\n";
+			*/
+
+			VariantClear(&vtProp);
+
+			//IMPORTANT!!
+			pclsObj->Release();
+
+			i++;
+		}
+		return loads;
 	}
 
 
@@ -817,7 +764,6 @@ namespace Profiler {
 		std::cout << "[VideoController] Max Memory Supported: " << WMI.intResult << "\n";
 	}
 
-
 	string checkGPU::GetGPUModel(WMIqueryServer WMI) {
 		
 		WMI = checkOS::queryWMI(WMI, "Win32_VideoController", "Name", "string");
@@ -850,7 +796,6 @@ namespace Profiler {
 		//std::cout << "\n/// prueba variables: ///" << x << "\n";
 
 	}
-
 
 	/////////////////////////////////////////////
 	//
