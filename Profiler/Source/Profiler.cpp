@@ -151,7 +151,7 @@ namespace Profiler {
 		std::cout << "GETGAMEINFO Inicializado\n";
 
 		// LLAMADA AL SERIALIZADOR
-		// Profiler::serialize::CSVserialize(allInfo);
+	    Profiler::serialize::CSVserialize(allInfo);
 
 		// Data debug
 		if (debug) {
@@ -1055,19 +1055,19 @@ namespace Profiler {
 		file.open("example.csv",ofstream::app);
 		//DATE AND MOTHERBOARD
 		file <<gi.st.wDay<<"/"<<gi.st.wMonth<<"/"<<gi.st.wYear<<" -> "<<gi.st.wHour<<":"<<gi.st.wMinute<<":"<<gi.st.wSecond<<":"<<gi.st.wMilliseconds <<"\n";
-		file << "MOTHERBOARD;" << gi.motherboardModel<<";\n";
+		//file << "MOTHERBOARD;" << gi.motherboardModel<<";\n";
 
 		//CPU
 		file << "CPU INFO" << ";\n"; //Header
-		file << "CPU MODEL;" << gi.cpuModel + ";;" << "CPU BUILDER;" << gi.cpuBuilder << "\n";
-		file << "CPU CORES;" << gi.cpuCores + ";;" << "CPU SPEED;" << gi.cpuSpeed << "\n";
+		file << "CPU Cores;" << gi.cpuCores <<";;" << "CPU SPEED;" << gi.cpuSpeed << "\n";
 		file << "CPU LOAD;" << gi.cpuLoad << ";\n\n";
 		CSVCores(gi, file);
+		//file << "CPU MODEL;" << gi.cpuModel + ";;" << "CPU BUILDER;" << gi.cpuBuilder << "\n";
 		//GPU
 		//Header
 		file << "GPU INFO" << ";\n"; 
-		file << "GPU MODEL;" << gi.gpuModel + ";;" << "GPU TEMP;" << gi.gpuTemp << "\n";
-		file << "GPU LOAD;" << gi.gpuLoad + ";;" << "GPU VRAM;" << gi.vRAM << "\n\n";
+		file << "GPU MODEL;" << gi.gpuModel << ";;" << "GPU TEMP;" << gi.gpuTemp << "\n";
+		file << "GPU LOAD;" << gi.gpuLoad <<";;" << "GPU VRAM;" << gi.vRAM << "\n\n";
 		//RAM
 		//Header
 		file << "RAM INFO" << ";\n"; 
