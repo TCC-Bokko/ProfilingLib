@@ -126,7 +126,12 @@ namespace Profiler {
 		//WMI = checkOS::queryWMI(WMI, "Win32_Processor", "Manufacturer", "string");
 		//allInfo.cpuBuilder = WMI.stringResult;
 		allInfo.cpuCores = checkCPU::getCPUCores();
+		std::cout << "getCPUCores(): " << allInfo.cpuCores << "\n";
+		std::cout << "Tamaño del vector cpuCoresLoad: " << allInfo.cpuCoresLoad.size() << "\n";
+		/////////////////////////////////////////////////////////////////
 		allInfo.cpuCoresLoad = checkCPU::getCPUcoresLoad(WMI);
+		std::cout << "Tamaño del vector cpuCoresLoad: " << allInfo.cpuCoresLoad.size() << "\n";
+		///////////////////////////////////////////////////////////
 		allInfo.cpuSpeed = checkCPU::getCPUSpeed();
 
 		// GPU Info Win32_VideoController
@@ -142,6 +147,11 @@ namespace Profiler {
 		allInfo.ramSpeed = checkMemory::getRAMSpeed(WMI);
 		allInfo.ramSize = checkMemory::getRAMSizeMB();
 		allInfo.ramLoad = checkMemory::getRAMLoad();
+
+		std::cout << "GETGAMEINFO Inicializado\n";
+
+		// LLAMADA AL SERIALIZADOR
+		// Profiler::serialize::CSVserialize(allInfo);
 
 		// Data debug
 		if (debug) {
@@ -161,10 +171,13 @@ namespace Profiler {
 			//std::cout << "CPU Builder: " << allInfo.cpuBuilder << "\n";
 			std::cout << "CPU Cores: " << allInfo.cpuCores << " Cores @ ";
 			std::cout << allInfo.cpuSpeed << " Mhz\n";
-			std::cout << "Cores Load:\n";
-			for (int i = 0; i < allInfo.cpuCoresLoad.size(); i++) {
+
+			std::cout << "Tamaño del vector cpuCoresLoad: " << allInfo.cpuCoresLoad.size() << "\n";
+			std::cout << "CPU Load: " << allInfo.cpuCoresLoad.at(allInfo.cpuCoresLoad.size() - 1) << " % (Average)\n";
+			for (int i = 0; i < allInfo.cpuCoresLoad.size()-1; i++) {
 				std::cout << "Core " << i << ": " << allInfo.cpuCoresLoad.at(i) << " %\n";
 			}
+			 
 			//std::cout << "CPU load: "
 				//<< allInfo.cpuLoad << " %\n";
 			// RAM
@@ -179,8 +192,7 @@ namespace Profiler {
 			//std::cout << "GPU load: " << allInfo.gpuLoad << " %\n";
 		}
 
-		// LLAMADA AL SERIALIZADOR
-		// Profiler::serialize::CSVserialize(allInfo);
+		
 
 		return allInfo;
 	}
@@ -348,6 +360,35 @@ namespace Profiler {
 		return WMI;
 	}
 
+	WMIqueryServer checkOS::getWMIService(WMIqueryServer WMI) {
+		HRESULT Hres;
+		
+		// pLoc
+		IWbemLocator* pLocator;
+		Hres = CoCreateInstance(CLSID_WbemLocator, 0, CLSCTX_INPROC_SERVER, IID_IWbemLocator, (LPVOID *)&pLocator);
+		std::cout << "pLoc initialized.\n";
+
+		// pSvc
+		IWbemServices* pService;
+		Hres = pLocator->ConnectServer(
+			_bstr_t(L"ROOT\\CIMV2"), // Object path of WMI namespace
+			NULL,                    // User name. NULL = current user
+			NULL,                    // User password. NULL = current
+			0,                       // Locale. NULL indicates current
+			NULL,                    // Security flags.
+			0,                       // Authority (for example, Kerberos)
+			0,                       // Context object 
+			&pService                // pointer to IWbemServices proxy
+		);
+		std::cout << "pSvc initialized.\n";
+
+		WMI.pLoc = pLocator;
+		WMI.pSvc = pService;
+		WMI.failStatus = 0;
+
+		return WMI;
+	}
+
 	WMIqueryServer checkOS::queryWMI(WMIqueryServer WMI, string wmiclass, string varname, string vartype) {
 		
 		// Class string to BSTR
@@ -359,7 +400,10 @@ namespace Profiler {
 		// Variable string to wstring to LPCWSTR
 		wstring var(varname.begin(), varname.end());
 		LPCWSTR variable = var.c_str();
-		WMI.pEnumerator = NULL;
+
+		IEnumWbemClassObject* pEnum = NULL;
+		//IWbemServices pService;
+		//WMI.pEnumerator = NULL;
 
 		// Class Retrieve
 		WMI.hres = WMI.pSvc->ExecQuery(
@@ -581,15 +625,17 @@ namespace Profiler {
 
 	std::vector<int> checkCPU::getCPUcoresLoad(WMIqueryServer WMI)
 	{
-		IWbemClassObject* pclsObj;
+		HRESULT hres;
+		IEnumWbemClassObject* pEnumerator = NULL;
+		IWbemClassObject* pclsObj = NULL;
 		std::vector<int> loads;
 		int i = 1;
 		
-		WMI.hres = WMI.pSvc->ExecQuery(bstr_t("WQL"),
+		hres = WMI.pSvc->ExecQuery(bstr_t("WQL"),
 			bstr_t("SELECT * FROM Win32_PerfFormattedData_PerfOS_Processor"),
 			WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
 			NULL,
-			&WMI.pEnumerator);
+			&pEnumerator);
 
 
 		if (FAILED(WMI.hres)) {
@@ -604,8 +650,8 @@ namespace Profiler {
 
 		ULONG uReturn = 0;
 
-		while (WMI.pEnumerator) {
-			HRESULT hr = WMI.pEnumerator->Next(WBEM_INFINITE, 1,
+		while (pEnumerator) {
+			HRESULT hr = pEnumerator->Next(WBEM_INFINITE, 1,
 				&pclsObj, &uReturn);
 
 			if (0 == uReturn) {

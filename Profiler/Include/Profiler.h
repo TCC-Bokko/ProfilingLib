@@ -89,6 +89,7 @@ namespace Profiler {
 			static __declspec(dllexport) void getOSVersion();
 			// Initialize WMI Query
 			static __declspec(dllexport) WMIqueryServer initializeWMI();
+			static __declspec(dllexport) WMIqueryServer getWMIService(WMIqueryServer WMI);
 			static __declspec(dllexport) WMIqueryServer queryWMI(WMIqueryServer WMI, std::string wmiclass, std::string varname, std::string vartype);
 			static __declspec(dllexport) void closeWMI(WMIqueryServer WMI);
 	};
