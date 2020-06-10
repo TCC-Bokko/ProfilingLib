@@ -127,10 +127,10 @@ namespace Profiler {
 		//allInfo.cpuBuilder = WMI.stringResult;
 		allInfo.cpuCores = checkCPU::getCPUCores();
 		std::cout << "getCPUCores(): " << allInfo.cpuCores << "\n";
-		std::cout << "Tamaño del vector cpuCoresLoad: " << allInfo.cpuCoresLoad.size() << "\n";
+		std::cout << "Tamaño del vector cpuCoresLoad (Antes): " << allInfo.cpuCoresLoad.size() << "\n";
 		/////////////////////////////////////////////////////////////////
 		allInfo.cpuCoresLoad = checkCPU::getCPUcoresLoad(WMI);
-		std::cout << "Tamaño del vector cpuCoresLoad: " << allInfo.cpuCoresLoad.size() << "\n";
+		std::cout << "Tamaño del vector cpuCoresLoad (Despues): " << allInfo.cpuCoresLoad.size() << "\n";
 		///////////////////////////////////////////////////////////
 		allInfo.cpuSpeed = checkCPU::getCPUSpeed();
 
@@ -173,9 +173,12 @@ namespace Profiler {
 			std::cout << allInfo.cpuSpeed << " Mhz\n";
 
 			std::cout << "Tamaño del vector cpuCoresLoad: " << allInfo.cpuCoresLoad.size() << "\n";
-			std::cout << "CPU Load: " << allInfo.cpuCoresLoad.at(allInfo.cpuCoresLoad.size() - 1) << " % (Average)\n";
-			for (int i = 0; i < allInfo.cpuCoresLoad.size()-1; i++) {
-				std::cout << "Core " << i << ": " << allInfo.cpuCoresLoad.at(i) << " %\n";
+			int size = allInfo.cpuCoresLoad.size();
+			if (size > 0){
+				std::cout << "CPU Load: " << allInfo.cpuCoresLoad.at(allInfo.cpuCoresLoad.size() - 1) << " % (Average)\n";
+				for (int i = 0; i < allInfo.cpuCoresLoad.size()-1; i++) {
+					std::cout << "Core " << i << ": " << allInfo.cpuCoresLoad.at(i) << " %\n";
+				}
 			}
 			 
 			//std::cout << "CPU load: "
