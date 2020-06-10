@@ -26,8 +26,13 @@ void main() {
 	else if (WMI.failStatus == 0) std::cout << "WMI initialized with success.\n";
 
 	// Game Info
-	std::cout << "\n/// GET GAME INFO ///\n";
-	Profiler::gameInfo::getGameInfo(WMI);
+	while (true) {
+		std::cout << "\n/// GET GAME INFO ///\n";
+		Profiler::gameInfo::getGameInfo(WMI);
+
+	}
+
+
 
 	//Profiler::serialize::CSVserialize(Profiler::gameInfo::getGameInfo(WMI));
 	system("PAUSE");

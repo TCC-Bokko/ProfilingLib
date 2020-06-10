@@ -60,7 +60,23 @@ __declspec(dllexport) struct GamingData {
 	int ramLoad; // 0-100
 	int ramSize; // 0-100
 	int ramSpeed; // Mhz
+
+	//Max & Mins..
+	//
+	int minGpuLoad = 0;//Podriamos poner la inicial el minimo no nos interesa mucho..
+	int maxGpuLoad = 0;
+	//
+	int minRamLoad;
+	int maxRamLoad;
+	//
+	int minTemp;
+	int maxTemp;
 	
+
+	
+
+	
+
 };
 
 namespace Profiler {

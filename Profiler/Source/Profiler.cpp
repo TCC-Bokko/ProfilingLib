@@ -150,8 +150,27 @@ namespace Profiler {
 
 		std::cout << "GETGAMEINFO Inicializado\n";
 
+
 		// LLAMADA AL SERIALIZADOR
 	    Profiler::serialize::CSVserialize(allInfo);
+
+
+		//MAX & MIN
+		if (allInfo.gpuLoad > allInfo.maxGpuLoad) {
+			allInfo.maxGpuLoad = allInfo.gpuLoad;
+		}
+		if (allInfo.gpuLoad < allInfo.minGpuLoad) {
+			allInfo.minGpuLoad = allInfo.gpuLoad;
+		}
+
+		if (allInfo.gpuTemp > allInfo.maxTemp) {
+			allInfo.maxTemp = allInfo.gpuTemp;
+		}
+
+		if (allInfo.ramLoad > allInfo.maxRamLoad) {
+			allInfo.maxRamLoad = allInfo.ramLoad;
+		}
+
 
 		// Data debug
 		if (debug) {
@@ -180,22 +199,44 @@ namespace Profiler {
 					std::cout << "Core " << i << ": " << allInfo.cpuCoresLoad.at(i) << " %\n";
 				}
 			}
-			 
+
 			//std::cout << "CPU load: "
 				//<< allInfo.cpuLoad << " %\n";
 			// RAM
 			std::cout << "RAM: " << allInfo.ramSize << " MB @ ";
 			std::cout << allInfo.ramSpeed << " Mhz.\n";
 			std::cout << "RAM Load: " << allInfo.ramLoad << " %\n";
+			std::cout << "Max Ram Load: " << allInfo.maxRamLoad << " %\n";
 			// GPU
 			std::cout << "GPU: " << allInfo.gpuModel << "\n";
 			std::cout << "Free VRAM: " << allInfo.vRAM << " MB\n";
 			std::cout << "GPU Load: " << allInfo.gpuLoad << " %\n";
+			std::cout << "Max GPU Load: " << allInfo.maxGpuLoad << "\n";
+			std::cout << "Min GPU Load: " << allInfo.minGpuLoad << "\n";
+
 			std::cout << "GPU Temp: " << allInfo.gpuTemp << " C\n";
-			//std::cout << "GPU load: " << allInfo.gpuLoad << " %\n";
+			std::cout << "Max GPU Temp " << allInfo.maxTemp << " C\n";
+					
+
+			
+/*
+
+			std::cout << "Max Temp: " << allInfo.maxTemp << " C\n";
+			std::cout << "Min Temp: " << allInfo.minTemp << " C\n";
+
+			std::cout << "Max Gpu Load: " << allInfo.maxGpuLoad << " C\n";
+			std::cout << "Min Gpu Load: " << allInfo.minGpuLoad << " C\n";
+			*/
 		}
 
 		
+
+
+
+
+
+
+
 
 		return allInfo;
 	}
