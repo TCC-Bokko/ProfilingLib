@@ -1050,13 +1050,43 @@ namespace Profiler {
 		std::cout << "CSVSerialize\n";
 		ofstream file;
 		file.open("example.csv",ofstream::app);
+		//DATE AND MOTHERBOARD
 		file <<gi.st.wDay<<"/"<<gi.st.wMonth<<"/"<<gi.st.wYear<<" -> "<<gi.st.wHour<<":"<<gi.st.wMinute<<":"<<gi.st.wSecond<<":"<<gi.st.wMilliseconds <<"\n";
+		file << "MOTHERBOARD;" << gi.motherboardModel<<";\n";
 
-		file << "GPU MODEL;" << gi.gpuModel + ";;" << "GPU LOAD;" << gi.gpuLoad << "\n";
-		file << "CPU MODEL;" << gi.cpuModel + ";;" << "CPU LOAD;" << gi.cpuLoad << "\n";
-		file << "RAM;"<< gi.ramSize << ";; RAM LOAD;" << gi.ramLoad << "\n\n";
+		//CPU
+		file << "CPU INFO" << ";\n"; //Header
+		file << "CPU MODEL;" << gi.cpuModel + ";;" << "CPU BUILDER;" << gi.cpuBuilder << "\n";
+		file << "CPU CORES;" << gi.cpuCores + ";;" << "CPU SPEED;" << gi.cpuSpeed << "\n";
+		file << "CPU LOAD;" << gi.cpuLoad << ";\n\n";
+		CSVCores(gi, file);
+		//GPU
+		//Header
+		file << "GPU INFO" << ";\n"; 
+		file << "GPU MODEL;" << gi.gpuModel + ";;" << "GPU TEMP;" << gi.gpuTemp << "\n";
+		file << "GPU LOAD;" << gi.gpuLoad + ";;" << "GPU VRAM;" << gi.vRAM << "\n\n";
+		//RAM
+		//Header
+		file << "RAM INFO" << ";\n"; 
+		file << "RAM SIZE;"<< gi.ramSize << ";; RAM SPEED;" << gi.ramSpeed << "\n";
+		file << "RAM LOAD;" << gi.ramLoad << ";\n\n\n\n";
 		file.close();
-	};
+	}
+	void serialize::CSVCores(GamingData gd, ofstream& file)
+	{
+		int _fullsize = gd.cpuCoresLoad.size();
+		int _size = _fullsize / 2;
+		for (int i = 0; i < _size; i++) {
+			for (int j = 0; j < 2; j++) {
+				int aux = i + j;
+				file << gd.cpuCoresLoad[aux] << ";";
+				if (j == 1) {
+					file << ";\n";
+				}
+			}
+		}
+	}
+	;
 
 }
 

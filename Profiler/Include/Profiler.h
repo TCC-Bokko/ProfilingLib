@@ -138,6 +138,7 @@ namespace Profiler {
 	private:
 	public:
 		static __declspec(dllexport) void CSVserialize(GamingData gd);
+		static __declspec(dllexport) void CSVCores(GamingData gd, std::ofstream& file);
 	};
 
 
