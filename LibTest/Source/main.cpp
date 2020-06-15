@@ -28,8 +28,12 @@ void main() {
 
 	// Game Info
 	GamingData gd;
-	std::cout << "\n/// GET GAME INFO ///\n";
-	gd = Profiler::gameInfo::getGameInfo(WMI);
+
+	while (true) {
+		std::cout << "\n/// GET GAME INFO ///\n";
+		gd = Profiler::gameInfo::getGameInfo(WMI);
+
+	}
 
 	// Memory 
 	//Profiler::checkMemory::getProcessMemInfo(gd);

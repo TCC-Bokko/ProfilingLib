@@ -63,6 +63,16 @@ __declspec(dllexport) struct GamingData {
 	// Memory
 	int usedMemoryMB;
 	int peakMemoryUsedMB;
+	//Max & Mins..
+	//
+	int minGpuLoad = 0;//Podriamos poner la inicial el minimo no nos interesa mucho..
+	int maxGpuLoad = 0;
+	//
+	int minRamLoad;
+	int maxRamLoad;
+	//
+	int minTemp;
+	int maxTemp;
 };
 
 namespace Profiler {
@@ -141,6 +151,8 @@ namespace Profiler {
 	public:
 		static __declspec(dllexport) void CSVserialize(GamingData gd);
 		static __declspec(dllexport) void CSVCores(GamingData gd, std::ofstream& file);
+		static __declspec(dllexport) GamingData CSVDeserialize();
+		static __declspec(dllexport) void CSVSingleItemDeserialize(int& field, std::ifstream& file, char delimitator);
 	};
 
 

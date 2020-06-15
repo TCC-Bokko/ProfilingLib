@@ -152,8 +152,27 @@ namespace Profiler {
 		allInfo = checkMemory::getProcessMemInfo(allInfo);
 		//std::cout << "GETGAMEINFO Inicializado\n";
 
+
 		// LLAMADA AL SERIALIZADOR
 	    Profiler::serialize::CSVserialize(allInfo);
+
+
+		//MAX & MIN
+		if (allInfo.gpuLoad > allInfo.maxGpuLoad) {
+			allInfo.maxGpuLoad = allInfo.gpuLoad;
+		}
+		if (allInfo.gpuLoad < allInfo.minGpuLoad) {
+			allInfo.minGpuLoad = allInfo.gpuLoad;
+		}
+
+		if (allInfo.gpuTemp > allInfo.maxTemp) {
+			allInfo.maxTemp = allInfo.gpuTemp;
+		}
+
+		if (allInfo.ramLoad > allInfo.maxRamLoad) {
+			allInfo.maxRamLoad = allInfo.ramLoad;
+		}
+
 
 		// Data debug
 		if (debug) {
@@ -168,27 +187,12 @@ namespace Profiler {
 				<< allInfo.st.wSecond << ":"
 				<< allInfo.st.wMilliseconds
 				<< "\n";
-			// CPU
-			//std::cout << "CPU Model: " << allInfo.cpuModel << "\n";
-			//std::cout << "CPU Builder: " << allInfo.cpuBuilder << "\n";
-			//std::cout << "CPU Cores: " << allInfo.cpuCores << " Cores @ ";
-			//std::cout << allInfo.cpuSpeed << " Mhz\n";
-			/*
-			std::cout << "Tamaño del vector cpuCoresLoad: " << allInfo.cpuCoresLoad.size() << "\n";
-			int size = allInfo.cpuCoresLoad.size();
-			if (size > 0){
-				std::cout << "CPU Load: " << allInfo.cpuCoresLoad.at(allInfo.cpuCoresLoad.size() - 1) << " % (Average)\n";
-				for (int i = 0; i < allInfo.cpuCoresLoad.size()-1; i++) {
-					std::cout << "Core " << i << ": " << allInfo.cpuCoresLoad.at(i) << " %\n";
-				}
-			}
-			//std::cout << "CPU load: "
-				//<< allInfo.cpuLoad << " %\n";
-			*/
 			// RAM
 			std::cout << "RAM: " << allInfo.ramSize << " MB @ ";
 			std::cout << allInfo.ramSpeed << " Mhz.\n";
 			std::cout << "RAM Load: " << allInfo.ramLoad << " %\n";
+			std::cout << "Max Ram Load: " << allInfo.maxRamLoad << " %\n";
+
 			// Memoria
 			std::cout << "Used physical memory: " << allInfo.usedMemoryMB << " MB \n";
 			std::cout << "Peak memory used: " << allInfo.peakMemoryUsedMB << " MB \n";
@@ -196,11 +200,14 @@ namespace Profiler {
 			std::cout << "GPU: " << allInfo.gpuModel << "\n";
 			//std::cout << "Free VRAM: " << allInfo.vRAM << " MB\n";
 			std::cout << "GPU Load: " << allInfo.gpuLoad << " %\n";
+			std::cout << "Max GPU Load: " << allInfo.maxGpuLoad << "\n";
+			std::cout << "Min GPU Load: " << allInfo.minGpuLoad << "\n";
+
 			std::cout << "GPU Temp: " << allInfo.gpuTemp << " C\n";
-			//std::cout << "GPU load: " << allInfo.gpuLoad << " %\n";
+			std::cout << "Max GPU Temp " << allInfo.maxTemp << " C\n";
+				
 		}
 
-		
 
 		return allInfo;
 	}
@@ -1063,42 +1070,152 @@ namespace Profiler {
 		// IMPLEMENTAR SERIALIZACION
 		std::cout << "CSVSerialize\n";
 		ofstream file;
-		file.open("example.csv",ofstream::app);
+		file.open("example.csv", ofstream::app);
 		//DATE AND MOTHERBOARD
-		file <<gi.st.wDay<<"/"<<gi.st.wMonth<<"/"<<gi.st.wYear<<" -> "<<gi.st.wHour<<":"<<gi.st.wMinute<<":"<<gi.st.wSecond<<":"<<gi.st.wMilliseconds <<"\n";
+		file << gi.st.wDay << "/" << gi.st.wMonth << "/" << gi.st.wYear << "/;" << gi.st.wHour << ":" << gi.st.wMinute << ":" << gi.st.wSecond << ":" << gi.st.wMilliseconds << ";" << "\n";
 		//file << "MOTHERBOARD;" << gi.motherboardModel<<";\n";
 
 		//CPU
 		file << "CPU INFO" << ";\n"; //Header
-		file << "CPU Cores;" << gi.cpuCores <<";;" << "CPU SPEED;" << gi.cpuSpeed << "\n";
-		file << "CPU LOAD;" << gi.cpuLoad << ";\n\n";
+		file << "CPU Cores ;" << gi.cpuCores << "; \n" << "CPU SPEED ;" << gi.cpuSpeed << "; \n";
+		file << "CPU LOAD ;" << gi.cpuLoad << "; \n;";
 		CSVCores(gi, file);
 		//file << "CPU MODEL;" << gi.cpuModel + ";;" << "CPU BUILDER;" << gi.cpuBuilder << "\n";
 		//GPU
 		//Header
-		file << "GPU INFO" << ";\n"; 
-		file << "GPU MODEL;" << gi.gpuModel << ";;" << "GPU TEMP;" << gi.gpuTemp << "\n";
-		file << "GPU LOAD;" << gi.gpuLoad <<";;" << "GPU VRAM;" << gi.vRAM << "\n\n";
+		file << "GPU INFO" << "; \n";
+		file << "GPU MODEL;" << gi.gpuModel << "; \n" << "GPU TEMP ;" << gi.gpuTemp << "; \n";
+		file << "GPU LOAD ;" << gi.gpuLoad << "; \n" << "GPU VRAM ;" << gi.vRAM << "; \n\n";
 		//RAM
 		//Header
-		file << "RAM INFO" << ";\n"; 
-		file << "RAM SIZE;"<< gi.ramSize << ";; RAM SPEED;" << gi.ramSpeed << "\n";
-		file << "RAM LOAD;" << gi.ramLoad << ";\n\n\n\n";
+		file << "RAM INFO" << "; \n";
+		file << "RAM SIZE ;" << gi.ramSize << "; \n" << "RAM SPEED ;" << gi.ramSpeed << "; \n";
+		file << "RAM LOAD ;" << gi.ramLoad << "; \n\n\n\n;";
 		file.close();
+		//gi = CSVDeserialize();
 	}
 	void serialize::CSVCores(GamingData gd, ofstream& file)
 	{
 		int _fullsize = gd.cpuCoresLoad.size();
 		int _size = _fullsize / 2;
-		for (int i = 0; i < _size; i++) {
+		for (int i = 0; i < _fullsize - 1; i += 2) {
 			for (int j = 0; j < 2; j++) {
 				int aux = i + j;
-				file << gd.cpuCoresLoad[aux] << ";";
+				file << gd.cpuCoresLoad[aux] << " ;";
 				if (j == 1) {
-					file << ";\n";
+					file << "\n;";
 				}
 			}
 		}
+	}
+	GamingData serialize::CSVDeserialize()
+	{
+		ifstream file;
+		GamingData gi;
+		file.open("example.csv");
+		char skip;
+		std::string endLineSkip;
+		std::string aux;
+		std::vector<int> v;
+		for (int i = 0; i < 3; i++) { //Dia, mes, año
+			std::getline(file, aux, '/');
+			if (i == 0)
+				gi.st.wDay = std::stoi(aux);
+			else if (i == 1)
+				gi.st.wMonth = std::stoi(aux);
+			else
+				gi.st.wYear = std::stoi(aux);
+		}
+		getline(file, endLineSkip, ';');
+		for (int i = 0; i < 4; i++) { //Hora, min, sec, milisec
+			if (i < 3) {
+				std::getline(file, aux, ':');
+				if (i == 0)
+					gi.st.wHour = std::stoi(aux);
+				else if (i == 1)
+					gi.st.wMinute = std::stoi(aux);
+				else if (i == 2)
+					gi.st.wSecond = std::stoi(aux);
+			}
+			else {
+				std::getline(file, aux, ';');
+				gi.st.wMilliseconds = std::stoi(aux);
+			}
+		}
+		getline(file, endLineSkip, ';'); //Header
+		//CPU INFO
+		//std::getline(file, aux, ';'); //Primero descripcion con previo salto de linea
+		//std::getline(file, aux, ';'); //Luego el valor
+		//gi.cpuCores = std::stoi(aux);
+		CSVSingleItemDeserialize(gi.cpuCores, file, ';');
+
+		//std::getline(file, aux, ';');
+		//std::getline(file, aux, ';');
+		//gi.cpuSpeed = std::stoi(aux);
+		CSVSingleItemDeserialize(gi.cpuSpeed, file, ';');
+
+		//std::getline(file, aux, ';');
+		//std::getline(file, aux, ';');
+		//gi.cpuLoad = std::stoi(aux);
+		CSVSingleItemDeserialize(gi.cpuLoad, file, ';');
+
+		getline(file, aux, ';');
+		for (int i = 0; i < gi.cpuCores; i += 2) {
+			for (int j = 0; j < 2; j++) {
+				int mix = i + j;
+				std::getline(file, aux, ';');
+				v.push_back(std::stoi(aux));
+			}
+			getline(file, aux, ';');
+		}
+		//GPU INFO
+		getline(file, endLineSkip, ';'); //header
+
+		getline(file, aux, ';');
+		getline(file, aux, ';');
+		gi.gpuModel = aux;
+
+		//getline(file, aux, ';');
+		//getline(file, aux, ';');
+		//gi.gpuTemp = std::stoi(aux);
+		CSVSingleItemDeserialize(gi.gpuTemp, file, ';');
+
+		//getline(file, aux, ';');
+		//getline(file, aux, ';');
+		//gi.gpuLoad = std::stoi(aux);
+		CSVSingleItemDeserialize(gi.gpuLoad, file, ';');
+
+		//getline(file, aux, ';');
+		//getline(file, aux, ';');
+		//gi.vRAM = std::stoi(aux);
+		CSVSingleItemDeserialize(gi.vRAM, file, ';');
+
+		//RAM INFO
+		getline(file, endLineSkip, ';'); //Header
+
+		getline(file, aux, ';');
+		getline(file, aux, ';');
+		gi.ramSize = std::stoi(aux);
+
+		getline(file, aux, ';');
+		getline(file, aux, ';');
+		gi.ramSpeed = std::stoi(aux);
+
+		getline(file, aux, ';');
+		getline(file, aux, ';');
+		gi.ramLoad = std::stoi(aux);
+
+		getline(file, endLineSkip, ';');
+
+		file.close();
+		return GamingData();
+	}
+	void serialize::CSVSingleItemDeserialize(int& field, std::ifstream& file, char delimitator)
+	{
+		std::string auxiliar;
+		getline(file, auxiliar, delimitator);
+		getline(file, auxiliar, delimitator);
+		field = std::stoi(auxiliar);
 	}
 	;
 
