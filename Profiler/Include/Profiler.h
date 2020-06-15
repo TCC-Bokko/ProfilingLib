@@ -56,11 +56,13 @@ __declspec(dllexport) struct GamingData {
 	int gpuLoad; // 0-100
 	int gpuTemp;
 	int vRAM;
-	// Memory
+	// RAM
 	int ramLoad; // 0-100
 	int ramSize; // 0-100
 	int ramSpeed; // Mhz
-	
+	// Memory
+	int usedMemoryMB;
+	int peakMemoryUsedMB;
 };
 
 namespace Profiler {
@@ -111,7 +113,7 @@ namespace Profiler {
 	public:
 		static __declspec(dllexport) void showPhysicalMemoryInfo(WMIqueryServer WMI);
 		static __declspec(dllexport) void getMemInfo();
-		static __declspec(dllexport) void getProcessMemInfo();
+		static __declspec(dllexport) GamingData getProcessMemInfo(GamingData gd);
 		static __declspec(dllexport) int getRAMSpeed(WMIqueryServer WMI);
 		static __declspec(dllexport) int getRAMSizeMB();
 		static __declspec(dllexport) int getRAMSizeGB();

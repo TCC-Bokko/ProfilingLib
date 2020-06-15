@@ -143,12 +143,14 @@ namespace Profiler {
 		allInfo.gpuLoad = checkGPU::getGPULoad();
 		allInfo.gpuTemp = checkGPU::getGPUTemp();
 		
-		// Memory Info 
+		// RAM Info 
 		allInfo.ramSpeed = checkMemory::getRAMSpeed(WMI);
 		allInfo.ramSize = checkMemory::getRAMSizeMB();
 		allInfo.ramLoad = checkMemory::getRAMLoad();
 
-		std::cout << "GETGAMEINFO Inicializado\n";
+		// Memoria
+		allInfo = checkMemory::getProcessMemInfo(allInfo);
+		//std::cout << "GETGAMEINFO Inicializado\n";
 
 		// LLAMADA AL SERIALIZADOR
 	    Profiler::serialize::CSVserialize(allInfo);
@@ -169,9 +171,9 @@ namespace Profiler {
 			// CPU
 			//std::cout << "CPU Model: " << allInfo.cpuModel << "\n";
 			//std::cout << "CPU Builder: " << allInfo.cpuBuilder << "\n";
-			std::cout << "CPU Cores: " << allInfo.cpuCores << " Cores @ ";
-			std::cout << allInfo.cpuSpeed << " Mhz\n";
-
+			//std::cout << "CPU Cores: " << allInfo.cpuCores << " Cores @ ";
+			//std::cout << allInfo.cpuSpeed << " Mhz\n";
+			/*
 			std::cout << "Tamaño del vector cpuCoresLoad: " << allInfo.cpuCoresLoad.size() << "\n";
 			int size = allInfo.cpuCoresLoad.size();
 			if (size > 0){
@@ -180,16 +182,19 @@ namespace Profiler {
 					std::cout << "Core " << i << ": " << allInfo.cpuCoresLoad.at(i) << " %\n";
 				}
 			}
-			 
 			//std::cout << "CPU load: "
 				//<< allInfo.cpuLoad << " %\n";
+			*/
 			// RAM
 			std::cout << "RAM: " << allInfo.ramSize << " MB @ ";
 			std::cout << allInfo.ramSpeed << " Mhz.\n";
 			std::cout << "RAM Load: " << allInfo.ramLoad << " %\n";
+			// Memoria
+			std::cout << "Used physical memory: " << allInfo.usedMemoryMB << " MB \n";
+			std::cout << "Peak memory used: " << allInfo.peakMemoryUsedMB << " MB \n";
 			// GPU
 			std::cout << "GPU: " << allInfo.gpuModel << "\n";
-			std::cout << "Free VRAM: " << allInfo.vRAM << " MB\n";
+			//std::cout << "Free VRAM: " << allInfo.vRAM << " MB\n";
 			std::cout << "GPU Load: " << allInfo.gpuLoad << " %\n";
 			std::cout << "GPU Temp: " << allInfo.gpuTemp << " C\n";
 			//std::cout << "GPU load: " << allInfo.gpuLoad << " %\n";
@@ -809,7 +814,7 @@ namespace Profiler {
 			WIDTH, (statex.ullAvailExtendedVirtual) / GB);
 	}
 
-	void checkMemory::getProcessMemInfo()
+	GamingData checkMemory::getProcessMemInfo(GamingData gd)
 	{
 		HANDLE hProcess;
 		PROCESS_MEMORY_COUNTERS pmc;
@@ -817,6 +822,9 @@ namespace Profiler {
 		BOOL result = GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
 		SIZE_T usedPhy = pmc.WorkingSetSize/ MB;
 		SIZE_T peakusedPhy = pmc.PeakWorkingSetSize / MB;
+
+		gd.usedMemoryMB = usedPhy;
+		gd.peakMemoryUsedMB = peakusedPhy;
 
 		if (result) {
 			printf("-- Current Process Info --\n");
@@ -827,6 +835,9 @@ namespace Profiler {
 			//Add more info if wanted
 			printf("--------------------------\n");
 		}
+
+		return gd;
+
 	}
 
 	int checkMemory::getRAMSpeed(WMIqueryServer WMI) {

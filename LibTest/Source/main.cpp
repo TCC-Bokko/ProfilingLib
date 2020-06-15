@@ -19,6 +19,7 @@ void main() {
 	
 	std::cout << "Grupo 7: Profiler.\n";
 
+
 	// INITIALIZE WMI SERVICE
 	WMIqueryServer WMI;
 	WMI = Profiler::checkOS::initializeWMI();
@@ -26,8 +27,12 @@ void main() {
 	else if (WMI.failStatus == 0) std::cout << "WMI initialized with success.\n";
 
 	// Game Info
+	GamingData gd;
 	std::cout << "\n/// GET GAME INFO ///\n";
-	Profiler::gameInfo::getGameInfo(WMI);
+	gd = Profiler::gameInfo::getGameInfo(WMI);
+
+	// Memory 
+	//Profiler::checkMemory::getProcessMemInfo(gd);
 
 	//Profiler::serialize::CSVserialize(Profiler::gameInfo::getGameInfo(WMI));
 	system("PAUSE");

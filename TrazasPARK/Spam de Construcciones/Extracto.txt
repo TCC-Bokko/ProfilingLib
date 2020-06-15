@@ -1,0 +1,35 @@
+14:55:40 Inicio
+GPU Temp 48
+GPU Load 4
+RAM Load 22
+Uso memoria 214 MB
+Pico Memoria 227 MB
+
+
+14:56:36 Servicio Inicializado
+GPU Temp 49
+GPU Load 5
+RAM Load 22
+Uso memoria 215 MB
+Pico Memoria 227 MB
+
+14:56:49 Ingame empezando
+GPU Temp 48
+GPU Load 17
+RAM Load 23
+Uso memoria 225 MB
+Pico Memoria 237 MB
+
+14:57:50 Ingame 1 minuto spawn edificios
+GPU Temp 48
+GPU Load 15
+RAM Load 23
+Uso memoria 215 MB
+Pico Memoria 237 MB
+
+14:59:30 Ingame spam edificios
+GPU Temp 48
+GPU Load 19
+RAM Load 23
+Uso memoria 248 MB
+Pico Memoria 253 MB
