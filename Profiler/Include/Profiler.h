@@ -38,6 +38,10 @@ __declspec(dllexport) struct WMIqueryServer {
 	BSTR bstrResult;
 };
 
+__declspec(dllexport) struct InfoStruct {
+	std::vector<SYSTEMTIME> times;
+	std::vector<double> values;
+};
 __declspec(dllexport) struct GamingData {
 	// Struct para devolver con un único metodo
 	// Recopilando la información que solo es importante de cara
@@ -160,6 +164,7 @@ namespace Profiler {
 		static __declspec(dllexport) void CSVTimeStamp(GamingData gd, std::ofstream& file);
 		static __declspec(dllexport) void CSVIntSerialize(int value, std::string info, std::ofstream& file, GamingData gi);
 		static __declspec(dllexport) void CSVPermanentInfo(GamingData gd, std::ofstream& file);
+		static __declspec(dllexport) InfoStruct CSVGetInfoFromFIle(std::string info, std::ifstream& file);
 	};
 
 

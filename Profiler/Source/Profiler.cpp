@@ -15,6 +15,7 @@
 // OTHER
 #include <Psapi.h>
 #include <fstream>
+#include <sstream>
 #include <codecvt>
 #include <typeinfo>
 #include <cstdio>
@@ -1100,7 +1101,7 @@ namespace Profiler {
 		CSVIntSerialize(gi.ramLoad, "RAM_LOAD", file,gi);
 		file << "\n";
 		file.close();
-		//gi = CSVDeserialize();
+		
 	}
 	void serialize::CSVCores(GamingData gd, ofstream& file)
 	{
@@ -1254,6 +1255,71 @@ namespace Profiler {
 		CSVTimeStamp(gi, file);
 		file << ',' << "HARDWARE_INFO," << "CPU_MODEL," << gi.cpuModel << ',' << "CPU_CORES," << gi.cpuCores << ',' << "CPU_SPEED," 
 			<< gi.cpuSpeed <<',' <<"GPU_MODEL," << gi.gpuModel << ',' << "vRAM," << gi.vRAM << ',' << "RAM_SIZE," << gi.ramSize << ',' << "RAM_SPEED," << gi.ramSpeed << "\n";
+	}
+	InfoStruct serialize::CSVGetInfoFromFIle(std::string info, ifstream& file)
+	{
+
+		InfoStruct data;
+		std::string endLineSkip = " ";
+		char delimitator = ',';
+		std::string auxTime = " ";
+		std::string aux = " ";
+		int dateaux = 0;
+		std::string dateSaux;
+		bool count = 0;
+		//Saltamos las 2 primeras lineas
+		getline(file, endLineSkip);
+		getline(file, endLineSkip);
+		while (!file.eof()) {
+			if (count != 0) {
+				for (int i = 0; i < 12; i++) {
+					getline(file, endLineSkip);
+				}
+			}
+			getline(file, auxTime, delimitator); //Guardamos la fecha en string de momento
+			if (auxTime != "") {
+				getline(file, aux, delimitator);	//Leemos la informacion
+				if (aux == info) { //Si es correcta y es lo que buscamos
+					getline(file, aux);
+					data.values.push_back(std::stoi(aux));
+					std::stringstream store(auxTime);
+					SYSTEMTIME t;
+					for (int i = 0; i < 3; i++) { //Dia, Mes, año
+						getline(store, dateSaux, '/');
+						if (i == 0)
+							t.wDay = std::stoi(dateSaux);
+						else if (i == 1)
+							t.wMonth = std::stoi(dateSaux);
+						else
+							t.wYear = std::stoi(dateSaux);
+					}
+					getline(store, endLineSkip, ';');
+					for (int i = 0; i < 3; i++) {
+						if (i == 0) {
+							getline(store, dateSaux, ':');
+							t.wHour = std::stoi(dateSaux);
+						}
+						else if (i == 1) {
+							getline(store, dateSaux, ':');
+							t.wMinute = std::stoi(dateSaux);
+						}
+						else {
+							getline(store, dateSaux, ':');
+							t.wSecond = std::stoi(dateSaux);
+						}
+					}
+					getline(store, dateSaux, ',');
+					t.wMilliseconds = std::stoi(dateSaux);
+					data.times.push_back(t);
+					count = true;
+				}
+				else {
+					getline(file, endLineSkip);
+				}
+			}
+		}
+		file.close();
+		return data;
 	}
 	;
 
