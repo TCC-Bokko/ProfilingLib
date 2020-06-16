@@ -21,6 +21,7 @@
 #include <iostream>
 #include <comdef.h>
 #include <Wbemidl.h>
+#include <fstream>
 #pragma comment(lib, "wbemuuid.lib")
 
 __declspec(dllexport) struct WMIqueryServer {
@@ -68,11 +69,11 @@ __declspec(dllexport) struct GamingData {
 	int minGpuLoad = 0;//Podriamos poner la inicial el minimo no nos interesa mucho..
 	int maxGpuLoad = 0;
 	//
-	int minRamLoad;
-	int maxRamLoad;
+	int minRamLoad = 0;
+	int maxRamLoad = 0;
 	//
-	int minTemp;
-	int maxTemp;
+	int minTemp = 0;
+	int maxTemp = 0;
 };
 
 namespace Profiler {
@@ -80,6 +81,7 @@ namespace Profiler {
 
 
 	extern __declspec(dllexport) int i = 0;  // Okay--export defi
+	extern __declspec(dllexport) int firstTime = 0;
 	class Testing {
 		public:
 			// Shows a test message
@@ -155,6 +157,9 @@ namespace Profiler {
 		static __declspec(dllexport) void CSVCores(GamingData gd, std::ofstream& file);
 		static __declspec(dllexport) GamingData CSVDeserialize();
 		static __declspec(dllexport) void CSVSingleItemDeserialize(int& field, std::ifstream& file, char delimitator);
+		static __declspec(dllexport) void CSVTimeStamp(GamingData gd, std::ofstream& file);
+		static __declspec(dllexport) void CSVIntSerialize(int value, std::string info, std::ofstream& file, GamingData gi);
+		static __declspec(dllexport) void CSVPermanentInfo(GamingData gd, std::ofstream& file);
 	};
 
 
