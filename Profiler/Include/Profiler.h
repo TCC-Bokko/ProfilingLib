@@ -76,6 +76,10 @@ __declspec(dllexport) struct GamingData {
 };
 
 namespace Profiler {
+
+
+
+	extern __declspec(dllexport) int i = 0;  // Okay--export defi
 	class Testing {
 		public:
 			// Shows a test message
@@ -130,11 +134,9 @@ namespace Profiler {
 		static __declspec(dllexport) int getRAMLoad();
 	};
 	
-	
-	extern __declspec(dllexport) int i = 0;  // Okay--export defi
+
 	class  checkGPU {
-	private:
-		
+	private:	
 	public:
 		//int a;
 		static __declspec(dllexport) void showVideoControllerInfo(WMIqueryServer WMI);

@@ -32,7 +32,7 @@ void main() {
 	while (true) {
 		std::cout << "\n/// GET GAME INFO ///\n";
 		gd = Profiler::gameInfo::getGameInfo(WMI);
-
+		
 	}
 
 	// Memory 

@@ -127,10 +127,10 @@ namespace Profiler {
 		//allInfo.cpuBuilder = WMI.stringResult;
 		allInfo.cpuCores = checkCPU::getCPUCores();
 		std::cout << "getCPUCores(): " << allInfo.cpuCores << "\n";
-		std::cout << "Tamaño del vector cpuCoresLoad (Antes): " << allInfo.cpuCoresLoad.size() << "\n";
+		//std::cout << "Tamaño del vector cpuCoresLoad (Antes): " << allInfo.cpuCoresLoad.size() << "\n";
 		/////////////////////////////////////////////////////////////////
 		allInfo.cpuCoresLoad = checkCPU::getCPUcoresLoad(WMI);
-		std::cout << "Tamaño del vector cpuCoresLoad (Despues): " << allInfo.cpuCoresLoad.size() << "\n";
+		//std::cout << "Tamaño del vector cpuCoresLoad (Despues): " << allInfo.cpuCoresLoad.size() << "\n";
 		///////////////////////////////////////////////////////////
 		allInfo.cpuSpeed = checkCPU::getCPUSpeed();
 
@@ -197,7 +197,7 @@ namespace Profiler {
 			std::cout << "Used physical memory: " << allInfo.usedMemoryMB << " MB \n";
 			std::cout << "Peak memory used: " << allInfo.peakMemoryUsedMB << " MB \n";
 			// GPU
-			std::cout << "GPU: " << allInfo.gpuModel << "\n";
+			//std::cout << "GPU: " << allInfo.gpuModel << "\n";
 			//std::cout << "Free VRAM: " << allInfo.vRAM << " MB\n";
 			std::cout << "GPU Load: " << allInfo.gpuLoad << " %\n";
 			std::cout << "Max GPU Load: " << allInfo.maxGpuLoad << "\n";
@@ -833,16 +833,6 @@ namespace Profiler {
 		gd.usedMemoryMB = usedPhy;
 		gd.peakMemoryUsedMB = peakusedPhy;
 
-		if (result) {
-			printf("-- Current Process Info --\n");
-			_tprintf(TEXT("There are %*I64d MB used of physical memory by this process.\n"),
-				WIDTH, usedPhy);
-			_tprintf(TEXT("The Peak was %*I64d MB used of physical memory by this process.\n"),
-				WIDTH, peakusedPhy);
-			//Add more info if wanted
-			printf("--------------------------\n");
-		}
-
 		return gd;
 
 	}
@@ -926,6 +916,7 @@ namespace Profiler {
 	{
 		
 		std::cout << "\n/// FPS: ///" << i << "\n";
+		i = 0;
 		
 	}
 	
