@@ -129,7 +129,7 @@ namespace Profiler {
 		std::cout << "getCPUCores(): " << allInfo.cpuCores << "\n";
 		//std::cout << "Tamaño del vector cpuCoresLoad (Antes): " << allInfo.cpuCoresLoad.size() << "\n";
 		/////////////////////////////////////////////////////////////////
-		allInfo.cpuCoresLoad = checkCPU::getCPUcoresLoad(WMI);
+		//checkCPU::getCPUcoresLoad(WMI, allInfo);
 		//std::cout << "Tamaño del vector cpuCoresLoad (Despues): " << allInfo.cpuCoresLoad.size() << "\n";
 		///////////////////////////////////////////////////////////
 		allInfo.cpuSpeed = checkCPU::getCPUSpeed();
@@ -187,6 +187,8 @@ namespace Profiler {
 				<< allInfo.st.wSecond << ":"
 				<< allInfo.st.wMilliseconds
 				<< "\n";
+			//CPU
+			checkCPU::getCPUcoresLoad(WMI, allInfo);
 			// RAM
 			std::cout << "RAM: " << allInfo.ramSize << " MB @ ";
 			std::cout << allInfo.ramSpeed << " Mhz.\n";
@@ -638,14 +640,15 @@ namespace Profiler {
 			return (int)dwMHz;
 	}
 
-	std::vector<int> checkCPU::getCPUcoresLoad(WMIqueryServer WMI)
+	void checkCPU::getCPUcoresLoad(WMIqueryServer WMI, GamingData& allInfo)
 	{
+		//std::cout << "INICIALIZACION\n";
 		HRESULT hres;
 		IEnumWbemClassObject* pEnumerator = NULL;
 		IWbemClassObject* pclsObj = NULL;
 		std::vector<int> loads;
-		int i = 1;
-		
+		int i = 0;
+		//std::cout << "QUERY\n";
 		hres = WMI.pSvc->ExecQuery(bstr_t("WQL"),
 			bstr_t("SELECT * FROM Win32_PerfFormattedData_PerfOS_Processor"),
 			WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
@@ -662,10 +665,11 @@ namespace Profiler {
 			CoUninitialize();
 			// Program has failed.
 		}
-
+		int vueltasBucle = 0;
 		ULONG uReturn = 0;
-
+		//std::cout << "WHILE{\n";
 		while (pEnumerator) {
+			//std::cout << "     pENUMERATOR NEXT\n";
 			HRESULT hr = pEnumerator->Next(WBEM_INFINITE, 1,
 				&pclsObj, &uReturn);
 
@@ -677,36 +681,50 @@ namespace Profiler {
 
 			// Get the value of the Name property
 			//hr = pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
+			//std::cout << "     GetValue\n";
 			hr = pclsObj->Get(L"PercentProcessorTime", 0, &vtProp, 0, 0);
 			//wcout << "CPU " << i << " : " << vtProp.bstrVal << " %" << endl;
 
 			//Transformar bstr a string y de string a int para guardarlo en el vector
 			//convertir bstr a wstring
+			//std::cout << "     Conversion\n";
 			std::wstring ws(vtProp.bstrVal, SysStringLen(vtProp.bstrVal));
 			//convertir wstring (UTF16) a string (UTF8)
 			std::string resultado = std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(ws);
 			//std::cout << "String convertido: " << resultado << "\n";
 			// convertir string a int
 			int res = std::stoi(resultado);
+			//std::cout << "    Query Result CPU " << i << ": " << res << "\n";
+			std::cout << "CPU " << i << ": " << res << "\n";
 			//Guardar en vector
+			//std::cout << "     EmplaceBackLoads\n";
 			loads.emplace_back(res);
 			/*
 			std::cout << "int convertido: " << res << "\n";
-			std::cout << "Loads: {";
-			for (int j = 0; j < loads.size(); j++) {
-				std::cout << loads.at(j) << ",";
-			}
-			std::cout << "}\n";
-			*/
+			*/		
 
 			VariantClear(&vtProp);
 
 			//IMPORTANT!!
 			pclsObj->Release();
 
+			vueltasBucle++;
 			i++;
 		}
-		return loads;
+		/*
+		std::cout << "} While End: Vueltas Bucle: " << vueltasBucle << "\n";
+
+		std::cout << "GI struct equal\n";
+		allInfo.cpuCoresLoad = loads;
+		std::cout << "COUT\n";
+		for (int j = 0; j < loads.size(); j++) {
+			std::cout << "CPU " << j << ": " << loads.at(j) << "%\n";
+		}
+		*/
+		//if (loads.size() > 0){
+		//	std::cout << "Overall CPU Load: " << loads.at(loads.size()-1) << "% \n";
+		//}
+		//std::cout << "}\n";
 	}
 
 	/////////////////////////////////////////////

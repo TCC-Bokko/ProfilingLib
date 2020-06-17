@@ -119,7 +119,7 @@ namespace Profiler {
 			static __declspec(dllexport) int getCPUSpeed();
 			static __declspec(dllexport) float CalculateCPULoad(unsigned long idleTicks, unsigned long totalTicks);
 			static __declspec(dllexport) unsigned long FileTimeToInt64(const FILETIME& ft);
-			static __declspec(dllexport) std::vector<int> getCPUcoresLoad(WMIqueryServer WMI);
+			static __declspec(dllexport) void getCPUcoresLoad(WMIqueryServer WMI, GamingData& allInfo);
 	};
 
 	class checkMemory {
