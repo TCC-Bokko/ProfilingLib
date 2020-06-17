@@ -15,6 +15,7 @@
 // OTHER
 #include <Psapi.h>
 #include <fstream>
+#include <sstream>
 #include <codecvt>
 #include <typeinfo>
 #include <cstdio>
@@ -153,8 +154,7 @@ namespace Profiler {
 		//std::cout << "GETGAMEINFO Inicializado\n";
 
 
-		// LLAMADA AL SERIALIZADOR
-	    Profiler::serialize::CSVserialize(allInfo);
+		
 
 
 		//MAX & MIN
@@ -173,7 +173,8 @@ namespace Profiler {
 			allInfo.maxRamLoad = allInfo.ramLoad;
 		}
 
-
+		// LLAMADA AL SERIALIZADOR
+		Profiler::serialize::CSVserialize(allInfo);
 		// Data debug
 		if (debug) {
 			// OS
@@ -1080,28 +1081,45 @@ namespace Profiler {
 		std::cout << "CSVSerialize\n";
 		ofstream file;
 		file.open("example.csv", ofstream::app);
-		//DATE AND MOTHERBOARD
-		file << gi.st.wDay << "/" << gi.st.wMonth << "/" << gi.st.wYear << "/;" << gi.st.wHour << ":" << gi.st.wMinute << ":" << gi.st.wSecond << ":" << gi.st.wMilliseconds << ";" << "\n";
-		//file << "MOTHERBOARD;" << gi.motherboardModel<<";\n";
-
+		//Permanent Data
+		if (!firstTime) {
+			CSVPermanentInfo(gi, file);
+			firstTime = 1;
+		}
 		//CPU
-		file << "CPU INFO" << ";\n"; //Header
-		file << "CPU Cores ;" << gi.cpuCores << "; \n" << "CPU SPEED ;" << gi.cpuSpeed << "; \n";
-		file << "CPU LOAD ;" << gi.cpuLoad << "; \n;";
-		CSVCores(gi, file);
-		//file << "CPU MODEL;" << gi.cpuModel + ";;" << "CPU BUILDER;" << gi.cpuBuilder << "\n";
+		CSVIntSerialize(gi.cpuLoad, "CPU_LOAD", file,gi);
+		CSVTimeStamp(gi, file);
+		file << ",CPU_CORES_INFO";
+		for (int i = 0; i < gi.cpuCores; i++) {
+			std::string aux = ",CORE_";
+			aux += std::to_string(i);
+			file << aux << ',' << gi.cpuCoresLoad[i];
+		}
+		file << "\n";
+
+
+
 		//GPU
-		//Header
-		file << "GPU INFO" << "; \n";
-		file << "GPU MODEL;" << gi.gpuModel << "; \n" << "GPU TEMP ;" << gi.gpuTemp << "; \n";
-		file << "GPU LOAD ;" << gi.gpuLoad << "; \n" << "GPU VRAM ;" << gi.vRAM << "; \n\n";
+		CSVIntSerialize(gi.gpuLoad, "GPU_LOAD", file,gi);
+
+		//Min/Maxes
+		CSVIntSerialize(gi.usedMemoryMB, "USED_MEMORY", file,gi);
+		CSVIntSerialize(gi.peakMemoryUsedMB, "PEEK_MEMORY", file,gi);
+
+		CSVIntSerialize(gi.minGpuLoad, "MIN_GPU_LOAD", file,gi);
+		CSVIntSerialize(gi.maxGpuLoad, "MAX_GPU_LOAD", file,gi);
+
+		CSVIntSerialize(gi.minRamLoad, "MIN_RAM_LOAD", file,gi);
+		CSVIntSerialize(gi.maxRamLoad, "MAX_RAM_LOAD", file,gi);
+
+		CSVIntSerialize(gi.minTemp, "MIN_TEMP", file,gi);
+		CSVIntSerialize(gi.maxTemp, "MAX_TEMP", file,gi);
+
 		//RAM
-		//Header
-		file << "RAM INFO" << "; \n";
-		file << "RAM SIZE ;" << gi.ramSize << "; \n" << "RAM SPEED ;" << gi.ramSpeed << "; \n";
-		file << "RAM LOAD ;" << gi.ramLoad << "; \n\n\n\n;";
+		CSVIntSerialize(gi.ramLoad, "RAM_LOAD", file,gi);
+		file << "\n";
 		file.close();
-		//gi = CSVDeserialize();
+		
 	}
 	void serialize::CSVCores(GamingData gd, ofstream& file)
 	{
@@ -1198,6 +1216,17 @@ namespace Profiler {
 		//getline(file, aux, ';');
 		//gi.vRAM = std::stoi(aux);
 		CSVSingleItemDeserialize(gi.vRAM, file, ';');
+		
+		
+		// MINIMOS Y MAXIMOS AQUI
+		CSVSingleItemDeserialize(gi.usedMemoryMB, file, ';');
+		CSVSingleItemDeserialize(gi.peakMemoryUsedMB, file, ';');
+		CSVSingleItemDeserialize(gi.minGpuLoad, file, ';');
+		CSVSingleItemDeserialize(gi.maxGpuLoad, file, ';');
+		CSVSingleItemDeserialize(gi.minRamLoad, file, ';');
+		CSVSingleItemDeserialize(gi.maxRamLoad, file, ';');
+		CSVSingleItemDeserialize(gi.minTemp, file, ';');
+		CSVSingleItemDeserialize(gi.maxTemp, file, ';');
 
 		//RAM INFO
 		getline(file, endLineSkip, ';'); //Header
@@ -1225,6 +1254,90 @@ namespace Profiler {
 		getline(file, auxiliar, delimitator);
 		getline(file, auxiliar, delimitator);
 		field = std::stoi(auxiliar);
+	}
+	void serialize::CSVTimeStamp(GamingData gi, std::ofstream& file)
+	{
+		file << gi.st.wDay << "/" << gi.st.wMonth << "/" << gi.st.wYear << "/;" << gi.st.wHour << ":" << gi.st.wMinute << ":" << gi.st.wSecond << ":" << gi.st.wMilliseconds;
+	}
+	
+	void serialize::CSVIntSerialize(int value, std::string info, std::ofstream& file, GamingData gi)
+	{
+		CSVTimeStamp(gi, file);
+		file <<',' <<info << ',' << value<<"\n";
+	}
+	void serialize::CSVPermanentInfo(GamingData gi, std::ofstream& file)
+	{
+		//ram speed y size  vram nº cores y speedcpu
+
+		file << "TIEMPO,HARDWARE_INFO,VALUE\n";
+		CSVTimeStamp(gi, file);
+		file << ',' << "HARDWARE_INFO," << "CPU_MODEL," << gi.cpuModel << ',' << "CPU_CORES," << gi.cpuCores << ',' << "CPU_SPEED," 
+			<< gi.cpuSpeed <<',' <<"GPU_MODEL," << gi.gpuModel << ',' << "vRAM," << gi.vRAM << ',' << "RAM_SIZE," << gi.ramSize << ',' << "RAM_SPEED," << gi.ramSpeed << "\n";
+	}
+	InfoStruct serialize::CSVGetInfoFromFIle(std::string info, ifstream& file)
+	{
+
+		InfoStruct data;
+		std::string endLineSkip = " ";
+		char delimitator = ',';
+		std::string auxTime = " ";
+		std::string aux = " ";
+		int dateaux = 0;
+		std::string dateSaux;
+		bool count = 0;
+		//Saltamos las 2 primeras lineas
+		getline(file, endLineSkip);
+		getline(file, endLineSkip);
+		while (!file.eof()) {
+			if (count != 0) {
+				for (int i = 0; i < 12; i++) {
+					getline(file, endLineSkip);
+				}
+			}
+			getline(file, auxTime, delimitator); //Guardamos la fecha en string de momento
+			if (auxTime != "") {
+				getline(file, aux, delimitator);	//Leemos la informacion
+				if (aux == info) { //Si es correcta y es lo que buscamos
+					getline(file, aux);
+					data.values.push_back(std::stoi(aux));
+					std::stringstream store(auxTime);
+					SYSTEMTIME t;
+					for (int i = 0; i < 3; i++) { //Dia, Mes, año
+						getline(store, dateSaux, '/');
+						if (i == 0)
+							t.wDay = std::stoi(dateSaux);
+						else if (i == 1)
+							t.wMonth = std::stoi(dateSaux);
+						else
+							t.wYear = std::stoi(dateSaux);
+					}
+					getline(store, endLineSkip, ';');
+					for (int i = 0; i < 3; i++) {
+						if (i == 0) {
+							getline(store, dateSaux, ':');
+							t.wHour = std::stoi(dateSaux);
+						}
+						else if (i == 1) {
+							getline(store, dateSaux, ':');
+							t.wMinute = std::stoi(dateSaux);
+						}
+						else {
+							getline(store, dateSaux, ':');
+							t.wSecond = std::stoi(dateSaux);
+						}
+					}
+					getline(store, dateSaux, ',');
+					t.wMilliseconds = std::stoi(dateSaux);
+					data.times.push_back(t);
+					count = true;
+				}
+				else {
+					getline(file, endLineSkip);
+				}
+			}
+		}
+		file.close();
+		return data;
 	}
 	;
 
