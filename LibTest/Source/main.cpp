@@ -30,7 +30,7 @@ void main() {
 	GamingData gd;
 
 	while (true) {
-		std::cout << "\n/// GET GAME INFO ///\n";
+		std::cout << "\\\\\\\\\\ GET GAME INFO //////////\n";
 		gd = Profiler::gameInfo::getGameInfo(WMI);
 		
 	}

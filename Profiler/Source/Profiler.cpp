@@ -153,7 +153,7 @@ namespace Profiler {
 		allInfo = checkMemory::getProcessMemInfo(allInfo);
 		//std::cout << "GETGAMEINFO Inicializado\n";
 
-
+		allInfo.cpuModel = checkCPU::getCPU();
 		
 
 
@@ -189,26 +189,30 @@ namespace Profiler {
 				<< allInfo.st.wMilliseconds
 				<< "\n";
 			//CPU
+			//Info solo para la primera vez:
+			if (firstTime == 0) {
+				std::cout << "CPU: " << allInfo.cpuModel << "\n";
+				std::cout << "RAM: " << allInfo.ramSize << " MB @ ";
+				std::cout << allInfo.ramSpeed << " Mhz.\n";
+				std::cout << "GPU: " << allInfo.gpuModel << "\n";
+				std::cout << "Free VRAM: " << allInfo.vRAM << " MB\n";
+			}
 			checkCPU::getCPUcoresLoad(WMI, allInfo);
-			// RAM
-			std::cout << "RAM: " << allInfo.ramSize << " MB @ ";
-			std::cout << allInfo.ramSpeed << " Mhz.\n";
+
+			// RAM			
 			std::cout << "RAM Load: " << allInfo.ramLoad << " %\n";
 			std::cout << "Max Ram Load: " << allInfo.maxRamLoad << " %\n";
 
 			// Memoria
 			std::cout << "Used physical memory: " << allInfo.usedMemoryMB << " MB \n";
 			std::cout << "Peak memory used: " << allInfo.peakMemoryUsedMB << " MB \n";
-			// GPU
-			//std::cout << "GPU: " << allInfo.gpuModel << "\n";
-			//std::cout << "Free VRAM: " << allInfo.vRAM << " MB\n";
+			// GPU	
 			std::cout << "GPU Load: " << allInfo.gpuLoad << " %\n";
 			std::cout << "Max GPU Load: " << allInfo.maxGpuLoad << "\n";
 			std::cout << "Min GPU Load: " << allInfo.minGpuLoad << "\n";
-
 			std::cout << "GPU Temp: " << allInfo.gpuTemp << " C\n";
 			std::cout << "Max GPU Temp " << allInfo.maxTemp << " C\n";
-				
+			std::cout << "\n";
 		}
 
 		Profiler::serialize::CSVserialize(allInfo);
