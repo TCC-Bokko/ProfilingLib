@@ -174,7 +174,7 @@ namespace Profiler {
 		}
 
 		// LLAMADA AL SERIALIZADOR
-		Profiler::serialize::CSVserialize(allInfo);
+		
 		// Data debug
 		if (debug) {
 			// OS
@@ -211,6 +211,7 @@ namespace Profiler {
 				
 		}
 
+		Profiler::serialize::CSVserialize(allInfo);
 
 		return allInfo;
 	}
@@ -712,11 +713,12 @@ namespace Profiler {
 			vueltasBucle++;
 			i++;
 		}
+		allInfo.cpuCoresLoad = loads;
+
 		/*
 		std::cout << "} While End: Vueltas Bucle: " << vueltasBucle << "\n";
 
 		std::cout << "GI struct equal\n";
-		allInfo.cpuCoresLoad = loads;
 		std::cout << "COUT\n";
 		for (int j = 0; j < loads.size(); j++) {
 			std::cout << "CPU " << j << ": " << loads.at(j) << "%\n";
@@ -1090,7 +1092,7 @@ namespace Profiler {
 		CSVIntSerialize(gi.cpuLoad, "CPU_LOAD", file,gi);
 		CSVTimeStamp(gi, file);
 		file << ",CPU_CORES_INFO";
-		for (int i = 0; i < gi.cpuCores; i++) {
+		for (int i = 0; i < gi.cpuCoresLoad.size(); i++) {
 			std::string aux = ",CORE_";
 			aux += std::to_string(i);
 			file << aux << ',' << gi.cpuCoresLoad[i];
