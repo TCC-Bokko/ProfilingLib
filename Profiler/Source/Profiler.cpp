@@ -1083,17 +1083,49 @@ namespace Profiler {
 
 	void serialize::CSVserialize(GamingData gi) {
 
+		if (!firstTime) {
+			int indexFile = 0;
+			std::string sesLoc = "SessionIndex.txt";
+			ifstream f;
+			f.open(sesLoc);
+			bool exist = f.good();
+			if (!exist) {
+				f.close();
+				ofstream sesionFile;
+				sesionFile.open(sesLoc);
+				sesionFile << "1";
+				sesionFile.close();
+				indx = 0;
+			}
+			else {
+				std::string aux;
+				getline(f, aux);
+				indexFile = std::stoi(aux);
+				f.close();
+				////////////////
+				ofstream sesionFile2;
+				sesionFile2.open(sesLoc, ofstream::ate);
+				int newAux = indexFile + 1;
+				sesionFile2 << newAux;
+				sesionFile2.close();
+				indx = indexFile;
+			}
+		}
+		std::string fileName = "session_";
+		std::string extName = ".csv";
+		std::string fullName = fileName + std::to_string(indx) + extName;
+
 		// IMPLEMENTAR SERIALIZACION
 		std::cout << "CSVSerialize\n";
 		ofstream file;
-		file.open("example.csv", ofstream::app);
+		file.open(fullName, ofstream::app);
 		//Permanent Data
 		if (!firstTime) {
 			CSVPermanentInfo(gi, file);
 			firstTime = 1;
 		}
 		//CPU
-		CSVIntSerialize(gi.cpuLoad, "CPU_LOAD", file,gi);
+		CSVIntSerialize(gi.cpuLoad, "CPU_LOAD", file, gi);
 		CSVTimeStamp(gi, file);
 		file << ",CPU_CORES_INFO";
 		for (int i = 0; i < gi.cpuCoresLoad.size(); i++) {
@@ -1106,26 +1138,27 @@ namespace Profiler {
 
 
 		//GPU
-		CSVIntSerialize(gi.gpuLoad, "GPU_LOAD", file,gi);
+		CSVIntSerialize(gi.gpuLoad, "GPU_LOAD", file, gi);
+		CSVIntSerialize(gi.minGpuLoad, "MIN_GPU_LOAD", file, gi);
+		CSVIntSerialize(gi.maxGpuLoad, "MAX_GPU_LOAD", file, gi);
 
 		//Min/Maxes
-		CSVIntSerialize(gi.usedMemoryMB, "USED_MEMORY", file,gi);
-		CSVIntSerialize(gi.peakMemoryUsedMB, "PEEK_MEMORY", file,gi);
+		CSVIntSerialize(gi.usedMemoryMB, "USED_MEMORY", file, gi);
+		CSVIntSerialize(gi.peakMemoryUsedMB, "PEEK_MEMORY", file, gi);
 
-		CSVIntSerialize(gi.minGpuLoad, "MIN_GPU_LOAD", file,gi);
-		CSVIntSerialize(gi.maxGpuLoad, "MAX_GPU_LOAD", file,gi);
 
-		CSVIntSerialize(gi.minRamLoad, "MIN_RAM_LOAD", file,gi);
-		CSVIntSerialize(gi.maxRamLoad, "MAX_RAM_LOAD", file,gi);
+		CSVIntSerialize(gi.ramLoad, "RAM_LOAD", file, gi);
+		CSVIntSerialize(gi.minRamLoad, "MIN_RAM_LOAD", file, gi);
+		CSVIntSerialize(gi.maxRamLoad, "MAX_RAM_LOAD", file, gi);
 
-		CSVIntSerialize(gi.minTemp, "MIN_TEMP", file,gi);
-		CSVIntSerialize(gi.maxTemp, "MAX_TEMP", file,gi);
+		CSVIntSerialize(gi.gpuTemp, "GPU_TEMP", file, gi);
+		CSVIntSerialize(gi.minTemp, "MIN_TEMP", file, gi);
+		CSVIntSerialize(gi.maxTemp, "MAX_TEMP", file, gi);
 
 		//RAM
-		CSVIntSerialize(gi.ramLoad, "RAM_LOAD", file,gi);
 		file << "\n";
 		file.close();
-		
+
 	}
 	void serialize::CSVCores(GamingData gd, ofstream& file)
 	{
@@ -1296,7 +1329,7 @@ namespace Profiler {
 		getline(file, endLineSkip);
 		while (!file.eof()) {
 			if (count != 0) {
-				for (int i = 0; i < 12; i++) {
+				for (int i = 0; i < 13; i++) {
 					getline(file, endLineSkip);
 				}
 			}

@@ -86,6 +86,7 @@ namespace Profiler {
 
 	extern __declspec(dllexport) int i = 0;  // Okay--export defi
 	extern __declspec(dllexport) int firstTime = 0;
+	extern __declspec(dllexport) int indx = 0;
 	class Testing {
 		public:
 			// Shows a test message
