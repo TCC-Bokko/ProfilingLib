@@ -215,7 +215,7 @@ namespace Profiler {
 			std::cout << "\n";
 		}
 
-		Profiler::serialize::CSVserialize(allInfo);
+		Profiler::serialize::CSVserialize2(allInfo);
 
 		return allInfo;
 	}
@@ -1082,7 +1082,6 @@ namespace Profiler {
 	/////////////////////////////////////////////
 
 	void serialize::CSVserialize(GamingData gi) {
-
 		if (!firstTime) {
 			int indexFile = 0;
 			std::string sesLoc = "SessionIndex.txt";
@@ -1158,8 +1157,89 @@ namespace Profiler {
 		//RAM
 		file << "\n";
 		file.close();
-
 	}
+	void serialize::CSVserialize2(GamingData gi) {
+		if (!firstTime) {
+			int indexFile = 0;
+			std::string sesLoc = "SessionIndex.txt";
+			ifstream f;
+			f.open(sesLoc);
+			bool exist = f.good();
+			if (!exist) {
+				f.close();
+				ofstream sesionFile;
+				sesionFile.open(sesLoc);
+				sesionFile << "1";
+				sesionFile.close();
+				indx = 0;
+			}
+			else {
+				std::string aux;
+				getline(f, aux);
+				indexFile = std::stoi(aux);
+				f.close();
+				////////////////
+				ofstream sesionFile2;
+				sesionFile2.open(sesLoc, ofstream::ate);
+				int newAux = indexFile + 1;
+				sesionFile2 << newAux;
+				sesionFile2.close();
+				indx = indexFile;
+			}
+		}
+		std::string fileName = "session_";
+		std::string extName = ".csv";
+		std::string fullName = fileName + std::to_string(indx) + extName;
+
+		// IMPLEMENTAR SERIALIZACION
+		std::cout << "CSVSerialize\n";
+		ofstream file;
+		file.open(fullName, ofstream::app);
+		//Permanent Data
+		if (!firstTime) {
+			//CSVPermanentInfo(gi, file);
+			file << "TIME, CPU_LOAD, CORES, GPU_LOAD, MIN_GPU_LOAD, MAX_GPU_LOAD, USED_MEMORY, PEEK_MEMORY, RAM_LOAD, MIN_RAM_LOAD, MAX_RAM_LOAD, GPU_TEMP, MIN_TEMP, MAX_TEMP\n";
+			firstTime = 1;
+		}
+		//CPU
+		CSVTimeStamp(gi, file);
+		file << ',';
+
+		//CPU_LOAD
+		CSVIntSerialize2(gi.cpuLoad, file);
+		//file << ",CPU_CORES_INFO";
+		for (int i = 0; i < gi.cpuCoresLoad.size(); i++) {
+			std::string aux = " CORE_";
+			aux += std::to_string(i);
+			file << aux << ' ' << gi.cpuCoresLoad[i];
+		}
+		file << ',';
+
+
+
+		//GPU
+		CSVIntSerialize2(gi.gpuLoad, file);
+		CSVIntSerialize2(gi.minGpuLoad, file);
+		CSVIntSerialize2(gi.maxGpuLoad, file);
+
+		//Min/Maxes
+		CSVIntSerialize2(gi.usedMemoryMB, file);
+		CSVIntSerialize2(gi.peakMemoryUsedMB, file);
+
+
+		CSVIntSerialize2(gi.ramLoad, file);
+		CSVIntSerialize2(gi.minRamLoad, file);
+		CSVIntSerialize2(gi.maxRamLoad, file);
+
+		CSVIntSerialize2(gi.gpuTemp, file);
+		CSVIntSerialize2(gi.minTemp, file);
+		CSVIntSerialize2(gi.maxTemp, file);
+
+		//RAM
+		file << "\n";
+		file.close();
+	}
+
 	void serialize::CSVCores(GamingData gd, ofstream& file)
 	{
 		int _fullsize = gd.cpuCoresLoad.size();
@@ -1294,18 +1374,19 @@ namespace Profiler {
 		getline(file, auxiliar, delimitator);
 		field = std::stoi(auxiliar);
 	}
-	void serialize::CSVTimeStamp(GamingData gi, std::ofstream& file)
-	{
+
+	void serialize::CSVTimeStamp(GamingData gi, std::ofstream& file) {
 		file << gi.st.wDay << "/" << gi.st.wMonth << "/" << gi.st.wYear << "/;" << gi.st.wHour << ":" << gi.st.wMinute << ":" << gi.st.wSecond << ":" << gi.st.wMilliseconds;
 	}
 	
-	void serialize::CSVIntSerialize(int value, std::string info, std::ofstream& file, GamingData gi)
-	{
-		CSVTimeStamp(gi, file);
+	void serialize::CSVIntSerialize(int value, std::string info, std::ofstream& file, GamingData gi) {
+		//CSVTimeStamp(gi, file);
 		file <<',' <<info << ',' << value<<"\n";
 	}
-	void serialize::CSVPermanentInfo(GamingData gi, std::ofstream& file)
-	{
+	void serialize::CSVIntSerialize2(int value, std::ofstream& file) {
+		file << value << ',';
+	}
+	void serialize::CSVPermanentInfo(GamingData gi, std::ofstream& file) {
 		//ram speed y size  vram nº cores y speedcpu
 
 		file << "TIEMPO,HARDWARE_INFO,VALUE\n";
@@ -1313,9 +1394,7 @@ namespace Profiler {
 		file << ',' << "HARDWARE_INFO," << "CPU_MODEL," << gi.cpuModel << ',' << "CPU_CORES," << gi.cpuCores << ',' << "CPU_SPEED," 
 			<< gi.cpuSpeed <<',' <<"GPU_MODEL," << gi.gpuModel << ',' << "vRAM," << gi.vRAM << ',' << "RAM_SIZE," << gi.ramSize << ',' << "RAM_SPEED," << gi.ramSpeed << "\n";
 	}
-	InfoStruct serialize::CSVGetInfoFromFIle(std::string info, ifstream& file)
-	{
-
+	InfoStruct serialize::CSVGetInfoFromFIle(std::string info, ifstream& file) {
 		InfoStruct data;
 		std::string endLineSkip = " ";
 		char delimitator = ',';
