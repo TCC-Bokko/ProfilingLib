@@ -161,7 +161,7 @@ namespace Profiler {
 		if (allInfo.gpuLoad > allInfo.maxGpuLoad) {
 			allInfo.maxGpuLoad = allInfo.gpuLoad;
 		}
-		if (allInfo.gpuLoad < allInfo.minGpuLoad) {
+		if (allInfo.gpuLoad < allInfo.minGpuLoad || allInfo.minGpuLoad == 0) {
 			allInfo.minGpuLoad = allInfo.gpuLoad;
 		}
 
@@ -1125,7 +1125,10 @@ namespace Profiler {
 		}
 		//CPU
 		CSVIntSerialize(gi.cpuLoad, "CPU_LOAD", file, gi);
-		CSVTimeStamp(gi, file);
+		CSVDayStamp(gi, file);
+		addComeToCSV(file);
+		CSVHourStamp(gi, file);
+		addComeToCSV(file);
 		file << ",CPU_CORES_INFO";
 		for (int i = 0; i < gi.cpuCoresLoad.size(); i++) {
 			std::string aux = ",CORE_";
@@ -1198,41 +1201,43 @@ namespace Profiler {
 		//Permanent Data
 		if (!firstTime) {
 			//CSVPermanentInfo(gi, file);
-			file << "TIME, CPU_LOAD, CORES, GPU_LOAD, MIN_GPU_LOAD, MAX_GPU_LOAD, USED_MEMORY, PEEK_MEMORY, RAM_LOAD, MIN_RAM_LOAD, MAX_RAM_LOAD, GPU_TEMP, MIN_TEMP, MAX_TEMP\n";
+			file << "DAY,TIME,CPU_LOAD,CORES,GPU_LOAD,MIN_GPU_LOAD,MAX_GPU_LOAD,USED_MEMORY,PEEK_MEMORY,RAM_LOAD,MIN_RAM_LOAD,MAX_RAM_LOAD,GPU_TEMP,MIN_TEMP,MAX_TEMP\n";
 			firstTime = 1;
 		}
-		//CPU
-		CSVTimeStamp(gi, file);
-		file << ',';
+		//CSVTimeStamp(gi, file);
+		//Dia y Hora
+		CSVDayStamp(gi, file);
+		addComeToCSV(file);
+		CSVHourStamp(gi, file);
+		addComeToCSV(file);
 
 		//CPU_LOAD
 		CSVIntSerialize2(gi.cpuLoad, file);
+		addComeToCSV(file);
 		//file << ",CPU_CORES_INFO";
 		for (int i = 0; i < gi.cpuCoresLoad.size(); i++) {
-			std::string aux = " CORE_";
-			aux += std::to_string(i);
-			file << aux << ' ' << gi.cpuCoresLoad[i];
+			file << gi.cpuCoresLoad[i] << ';';
 		}
-		file << ',';
+		addComeToCSV(file);
 
 
 
 		//GPU
-		CSVIntSerialize2(gi.gpuLoad, file);
-		CSVIntSerialize2(gi.minGpuLoad, file);
-		CSVIntSerialize2(gi.maxGpuLoad, file);
+		CSVIntSerialize2(gi.gpuLoad, file); addComeToCSV(file);
+		CSVIntSerialize2(gi.minGpuLoad, file); addComeToCSV(file);
+		CSVIntSerialize2(gi.maxGpuLoad, file); addComeToCSV(file);
 
 		//Min/Maxes
-		CSVIntSerialize2(gi.usedMemoryMB, file);
-		CSVIntSerialize2(gi.peakMemoryUsedMB, file);
+		CSVIntSerialize2(gi.usedMemoryMB, file); addComeToCSV(file);
+		CSVIntSerialize2(gi.peakMemoryUsedMB, file); addComeToCSV(file);
 
 
-		CSVIntSerialize2(gi.ramLoad, file);
-		CSVIntSerialize2(gi.minRamLoad, file);
-		CSVIntSerialize2(gi.maxRamLoad, file);
+		CSVIntSerialize2(gi.ramLoad, file); addComeToCSV(file);
+		CSVIntSerialize2(gi.minRamLoad, file); addComeToCSV(file);
+		CSVIntSerialize2(gi.maxRamLoad, file); addComeToCSV(file);
 
-		CSVIntSerialize2(gi.gpuTemp, file);
-		CSVIntSerialize2(gi.minTemp, file);
+		CSVIntSerialize2(gi.gpuTemp, file); addComeToCSV(file);
+		CSVIntSerialize2(gi.minTemp, file); addComeToCSV(file);
 		CSVIntSerialize2(gi.maxTemp, file);
 
 		//RAM
@@ -1375,8 +1380,12 @@ namespace Profiler {
 		field = std::stoi(auxiliar);
 	}
 
-	void serialize::CSVTimeStamp(GamingData gi, std::ofstream& file) {
-		file << gi.st.wDay << "/" << gi.st.wMonth << "/" << gi.st.wYear << "/;" << gi.st.wHour << ":" << gi.st.wMinute << ":" << gi.st.wSecond << ":" << gi.st.wMilliseconds;
+	void serialize::CSVDayStamp(GamingData gi, std::ofstream& file)	{
+		file << gi.st.wDay << "/" << gi.st.wMonth << "/" << gi.st.wYear;
+	}
+
+	void serialize::CSVHourStamp(GamingData gi, std::ofstream& file) {
+		file << gi.st.wHour << ":" << gi.st.wMinute << ":" << gi.st.wSecond << ":" << gi.st.wMilliseconds;
 	}
 	
 	void serialize::CSVIntSerialize(int value, std::string info, std::ofstream& file, GamingData gi) {
@@ -1384,13 +1393,20 @@ namespace Profiler {
 		file <<',' <<info << ',' << value<<"\n";
 	}
 	void serialize::CSVIntSerialize2(int value, std::ofstream& file) {
-		file << value << ',';
+		file << value;
+	}
+	void serialize::addComeToCSV(std::ofstream& file)
+	{
+		file << ',';
 	}
 	void serialize::CSVPermanentInfo(GamingData gi, std::ofstream& file) {
 		//ram speed y size  vram nº cores y speedcpu
 
-		file << "TIEMPO,HARDWARE_INFO,VALUE\n";
-		CSVTimeStamp(gi, file);
+		file << "DIA, HORA ,HARDWARE_INFO,VALUE\n";
+		CSVDayStamp(gi, file);
+		addComeToCSV(file);
+		CSVHourStamp(gi, file);
+		addComeToCSV(file);
 		file << ',' << "HARDWARE_INFO," << "CPU_MODEL," << gi.cpuModel << ',' << "CPU_CORES," << gi.cpuCores << ',' << "CPU_SPEED," 
 			<< gi.cpuSpeed <<',' <<"GPU_MODEL," << gi.gpuModel << ',' << "vRAM," << gi.vRAM << ',' << "RAM_SIZE," << gi.ramSize << ',' << "RAM_SPEED," << gi.ramSpeed << "\n";
 	}

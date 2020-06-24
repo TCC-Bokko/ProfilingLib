@@ -163,9 +163,11 @@ namespace Profiler {
 		static __declspec(dllexport) void CSVCores(GamingData gd, std::ofstream& file);
 		static __declspec(dllexport) GamingData CSVDeserialize();
 		static __declspec(dllexport) void CSVSingleItemDeserialize(int& field, std::ifstream& file, char delimitator);
-		static __declspec(dllexport) void CSVTimeStamp(GamingData gd, std::ofstream& file);
+		static __declspec(dllexport) void CSVDayStamp(GamingData gd, std::ofstream& file);
+		static __declspec(dllexport) void CSVHourStamp(GamingData gd, std::ofstream& file);
 		static __declspec(dllexport) void CSVIntSerialize(int value, std::string info, std::ofstream& file, GamingData gi);
 		static __declspec(dllexport) void CSVIntSerialize2(int value, std::ofstream& file);
+		static __declspec(dllexport) void addComeToCSV(std::ofstream& file);
 		static __declspec(dllexport) void CSVPermanentInfo(GamingData gd, std::ofstream& file);
 		static __declspec(dllexport) InfoStruct CSVGetInfoFromFIle(std::string info, std::ifstream& file);
 	};
