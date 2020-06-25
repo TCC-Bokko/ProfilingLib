@@ -1191,7 +1191,7 @@ namespace Profiler {
 		//Permanent Data
 		if (!firstTime) {
 			//CSVPermanentInfo(gi, file);
-			file << "DAY,TIME,CPU_LOAD,CORES,GPU_LOAD,MIN_GPU_LOAD,MAX_GPU_LOAD,USED_MEMORY,PEEK_MEMORY,RAM_LOAD,MIN_RAM_LOAD,MAX_RAM_LOAD,GPU_TEMP,MIN_TEMP,MAX_TEMP\n";
+			file << "DAY,TIME,CORES,CPU_LOAD,GPU_LOAD,MIN_GPU_LOAD,MAX_GPU_LOAD,USED_MEMORY,PEEK_MEMORY,RAM_LOAD,MIN_RAM_LOAD,MAX_RAM_LOAD,GPU_TEMP,MIN_TEMP,MAX_TEMP\n";
 			firstTime = 1;
 		}
 		//CSVTimeStamp(gi, file);
@@ -1202,15 +1202,19 @@ namespace Profiler {
 		addComeToCSV(file);
 
 		//CPU_LOAD
-		CSVIntSerialize2(gi.cpuLoad, file);
-		addComeToCSV(file);
+		//SVIntSerialize2(gi.cpuLoad, file);
+		//addComeToCSV(file);
 		//file << ",CPU_CORES_INFO";
 		for (int i = 0; i < gi.cpuCoresLoad.size(); i++) {
-			file << gi.cpuCoresLoad[i] << ';';
+			if (i != gi.cpuCoresLoad.size()) {
+				file << gi.cpuCoresLoad[i] << ';';
+			}
+			else {
+				file << gi.cpuCoresLoad[i];
+			}
+
 		}
 		addComeToCSV(file);
-
-
 
 		//GPU
 		CSVIntSerialize2(gi.gpuLoad, file); addComeToCSV(file);
@@ -1223,12 +1227,12 @@ namespace Profiler {
 
 
 		CSVIntSerialize2(gi.ramLoad, file); addComeToCSV(file);
-		CSVIntSerialize2(gi.minRamLoad, file); addComeToCSV(file);
+		//CSVIntSerialize2(gi.minRamLoad, file); addComeToCSV(file);
 		CSVIntSerialize2(gi.maxRamLoad, file); addComeToCSV(file);
 
 		// Temperatura
 		CSVIntSerialize2(gi.gpuTemp, file); addComeToCSV(file);
-		//CSVIntSerialize2(gi.minTemp, file); addComeToCSV(file);
+		CSVIntSerialize2(gi.minTemp, file); addComeToCSV(file);
 		CSVIntSerialize2(gi.maxTemp, file);
 
 		//RAM

@@ -66,13 +66,13 @@ __declspec(dllexport) struct GamingData {
 	int peakMemoryUsedMB;
 	//Max & Mins..
 	//
-	int minGpuLoad = 0;
+	int minGpuLoad = 1000;
 	int maxGpuLoad = 0;
 	//
-	int minRamLoad = 0;
+	int minRamLoad = 1000;
 	int maxRamLoad = 0;
 	//
-	int minTemp = 0;
+	int minTemp = 1000;
 	int maxTemp = 0;
 };
 
