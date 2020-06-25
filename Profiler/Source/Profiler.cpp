@@ -1001,7 +1001,7 @@ namespace Profiler {
 			Sleep(1000);
 		}
 		*/
-		(*NvAPI_GPU_GetUsages)(gpuHandles[0], gpuUsages);
+		int u = (*NvAPI_GPU_GetUsages)(gpuHandles[0], gpuUsages);
 		int usage = gpuUsages[3];
 
 		return usage;
@@ -1142,8 +1142,9 @@ namespace Profiler {
 		CSVIntSerialize(gi.minRamLoad, "MIN_RAM_LOAD", file, gi);
 		CSVIntSerialize(gi.maxRamLoad, "MAX_RAM_LOAD", file, gi);
 
+		// Temperatura
 		CSVIntSerialize(gi.gpuTemp, "GPU_TEMP", file, gi);
-		CSVIntSerialize(gi.minTemp, "MIN_TEMP", file, gi);
+		//CSVIntSerialize(gi.minTemp, "MIN_TEMP", file, gi);
 		CSVIntSerialize(gi.maxTemp, "MAX_TEMP", file, gi);
 
 		//RAM
@@ -1225,8 +1226,9 @@ namespace Profiler {
 		CSVIntSerialize2(gi.minRamLoad, file); addComeToCSV(file);
 		CSVIntSerialize2(gi.maxRamLoad, file); addComeToCSV(file);
 
+		// Temperatura
 		CSVIntSerialize2(gi.gpuTemp, file); addComeToCSV(file);
-		CSVIntSerialize2(gi.minTemp, file); addComeToCSV(file);
+		//CSVIntSerialize2(gi.minTemp, file); addComeToCSV(file);
 		CSVIntSerialize2(gi.maxTemp, file);
 
 		//RAM
