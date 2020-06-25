@@ -1206,7 +1206,7 @@ namespace Profiler {
 		//addComeToCSV(file);
 		//file << ",CPU_CORES_INFO";
 		for (int i = 0; i < gi.cpuCoresLoad.size(); i++) {
-			if (i != gi.cpuCoresLoad.size()) {
+			if (i != gi.cpuCoresLoad.size() - 1) {
 				// Info de cada CORE
 				file << gi.cpuCoresLoad[i] << ';';
 			}
