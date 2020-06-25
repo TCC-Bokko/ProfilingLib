@@ -1215,7 +1215,9 @@ namespace Profiler {
 				addComeToCSV(file);
 				file << gi.cpuCoresLoad[i];
 			}
-
+		}
+		if(gi.cpuCoresLoad.size() == 0) {
+			addComeToCSV(file);
 		}
 		addComeToCSV(file);
 
