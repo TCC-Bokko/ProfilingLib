@@ -27,8 +27,7 @@ using namespace std;
 #define NVAPI_MAX_USAGES_PER_GPU  34
 #define NVAPI_MAX_THERMAL_SENSORS_PER_GPU 3
 
-typedef enum
-{
+typedef enum {
 	NVAPI_THERMAL_CONTROLLER_NONE = 0,
 	NVAPI_THERMAL_CONTROLLER_GPU_INTERNAL,
 	NVAPI_THERMAL_CONTROLLER_ADM1032,
@@ -44,8 +43,7 @@ typedef enum
 	NVAPI_THERMAL_CONTROLLER_UNKNOWN = -1,
 } NV_THERMAL_CONTROLLER;
 
-typedef enum
-{
+typedef enum {
 	NVAPI_THERMAL_TARGET_NONE = 0,
 	NVAPI_THERMAL_TARGET_GPU = 1,     //!< GPU core temperature requires NvPhysicalGpuHandle
 	NVAPI_THERMAL_TARGET_MEMORY = 2,     //!< GPU memory temperature requires NvPhysicalGpuHandle
@@ -59,12 +57,10 @@ typedef enum
 	NVAPI_THERMAL_TARGET_UNKNOWN = -1,
 } NV_THERMAL_TARGET;
 
-typedef struct
-{
+typedef struct {
 	int   version;                //!< structure version 
 	int   count;                  //!< number of associated thermal sensors
-	struct
-	{
+	struct {
 		NV_THERMAL_CONTROLLER       controller;        //!< internal, ADM1032, MAX6649...
 		int       defaultMinTemp;    //!< The min default temperature value of the thermal sensor in degree Celsius 
 		int       defaultMaxTemp;    //!< The max default temperature value of the thermal sensor in degree Celsius 
@@ -100,23 +96,16 @@ typedef LONG NTSTATUS, *PNTSTATUS;
 typedef NTSTATUS(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
 
 namespace Profiler {
-
-	void Testing::testMSG() {
-		std::cout << "Esto funciona.\n";
-	}
-
 	/////////////////////////////////////////////
 	//
 	// GameInfo Methods
 	//
 	/////////////////////////////////////////////
 
-	// Devuelve en un unico struct todos los datos importantes
+	// Este metodo muestrea todos los datos del programa cada X segundos y los
+	// devuelve en un struct. Cada vez que se llame a este metodo se serializaran los
+	// datos obtenidos.
 	GamingData gameInfo::getGameInfo(WMIqueryServer WMI) {
-		// La idea de este metodo es muestrear todos los datos del programa cada X segundos
-		// y devolverlos en un struct. A ser posible cada vez que se llame a este metodo
-		// estaría bien serializar los datos.
-
 		bool debug = true;
 		GamingData allInfo;
 
@@ -1410,70 +1399,4 @@ namespace Profiler {
 		file << ',' << "HARDWARE_INFO," << "CPU_MODEL," << gi.cpuModel << ',' << "CPU_CORES," << gi.cpuCores << ',' << "CPU_SPEED," 
 			<< gi.cpuSpeed <<',' <<"GPU_MODEL," << gi.gpuModel << ',' << "vRAM," << gi.vRAM << ',' << "RAM_SIZE," << gi.ramSize << ',' << "RAM_SPEED," << gi.ramSpeed << "\n";
 	}
-	InfoStruct serialize::CSVGetInfoFromFIle(std::string info, ifstream& file) {
-		InfoStruct data;
-		std::string endLineSkip = " ";
-		char delimitator = ',';
-		std::string auxTime = " ";
-		std::string aux = " ";
-		int dateaux = 0;
-		std::string dateSaux;
-		bool count = 0;
-		//Saltamos las 2 primeras lineas
-		getline(file, endLineSkip);
-		getline(file, endLineSkip);
-		while (!file.eof()) {
-			if (count != 0) {
-				for (int i = 0; i < 13; i++) {
-					getline(file, endLineSkip);
-				}
-			}
-			getline(file, auxTime, delimitator); //Guardamos la fecha en string de momento
-			if (auxTime != "") {
-				getline(file, aux, delimitator);	//Leemos la informacion
-				if (aux == info) { //Si es correcta y es lo que buscamos
-					getline(file, aux);
-					data.values.push_back(std::stoi(aux));
-					std::stringstream store(auxTime);
-					SYSTEMTIME t;
-					for (int i = 0; i < 3; i++) { //Dia, Mes, año
-						getline(store, dateSaux, '/');
-						if (i == 0)
-							t.wDay = std::stoi(dateSaux);
-						else if (i == 1)
-							t.wMonth = std::stoi(dateSaux);
-						else
-							t.wYear = std::stoi(dateSaux);
-					}
-					getline(store, endLineSkip, ';');
-					for (int i = 0; i < 3; i++) {
-						if (i == 0) {
-							getline(store, dateSaux, ':');
-							t.wHour = std::stoi(dateSaux);
-						}
-						else if (i == 1) {
-							getline(store, dateSaux, ':');
-							t.wMinute = std::stoi(dateSaux);
-						}
-						else {
-							getline(store, dateSaux, ':');
-							t.wSecond = std::stoi(dateSaux);
-						}
-					}
-					getline(store, dateSaux, ',');
-					t.wMilliseconds = std::stoi(dateSaux);
-					data.times.push_back(t);
-					count = true;
-				}
-				else {
-					getline(file, endLineSkip);
-				}
-			}
-		}
-		file.close();
-		return data;
-	}
-	;
-
 }
-
