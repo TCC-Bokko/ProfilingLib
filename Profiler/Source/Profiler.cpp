@@ -1210,6 +1210,7 @@ namespace Profiler {
 				file << gi.cpuCoresLoad[i] << ';';
 			}
 			else {
+				addComeToCSV(file);
 				file << gi.cpuCoresLoad[i];
 			}
 
